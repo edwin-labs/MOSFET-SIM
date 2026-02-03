@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
+import { useViewStore } from '../../store/viewStore';
 import { IVPlot } from '../plots/IVPlot';
 import { CVPlot } from '../plots/CVPlot';
 import { BandDiagram } from '../plots/BandDiagram';
@@ -10,18 +11,24 @@ import styles from './RightSidebar.module.css';
 
 interface FoldableSectionProps {
   title: string;
+  storageKey: string;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }
 
-function FoldableSection({ title, defaultOpen = false, children }: FoldableSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+function FoldableSection({ title, storageKey, defaultOpen = false, children }: FoldableSectionProps) {
+  const { foldStates, setFoldState } = useViewStore();
+  const isOpen = foldStates[storageKey] ?? defaultOpen;
+
+  const toggle = useCallback(() => {
+    setFoldState(storageKey, !isOpen);
+  }, [storageKey, isOpen, setFoldState]);
 
   return (
     <div className={styles.section}>
       <button
         className={`${styles.sectionHeader} ${isOpen ? styles.open : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggle}
       >
         <span className={styles.sectionTitle}>{title}</span>
         <span className={styles.chevron}>{isOpen ? '▼' : '▶'}</span>
@@ -34,31 +41,31 @@ function FoldableSection({ title, defaultOpen = false, children }: FoldableSecti
 export function RightSidebar() {
   return (
     <div className={styles.sidebar}>
-      <FoldableSection title="Device Metrics" defaultOpen={true}>
+      <FoldableSection title="Device Metrics" storageKey="right-metrics" defaultOpen={true}>
         <Dashboard />
       </FoldableSection>
 
-      <FoldableSection title="I-V Characteristics" defaultOpen={true}>
+      <FoldableSection title="I-V Characteristics" storageKey="right-iv" defaultOpen={true}>
         <IVPlot />
       </FoldableSection>
 
-      <FoldableSection title="C-V Characteristics">
+      <FoldableSection title="C-V Characteristics" storageKey="right-cv">
         <CVPlot />
       </FoldableSection>
 
-      <FoldableSection title="Band Diagram">
+      <FoldableSection title="Band Diagram" storageKey="right-band">
         <BandDiagram />
       </FoldableSection>
 
-      <FoldableSection title="Transconductance (gm/gds)">
+      <FoldableSection title="Transconductance (gm/gds)" storageKey="right-gmgds">
         <GmGdsPlot />
       </FoldableSection>
 
-      <FoldableSection title="Doping Profile">
+      <FoldableSection title="Doping Profile" storageKey="right-doping">
         <DopingProfile />
       </FoldableSection>
 
-      <FoldableSection title="2D Fields (Level C)">
+      <FoldableSection title="2D Fields (Level C)" storageKey="right-fields">
         <FieldPlotsPanel />
       </FoldableSection>
     </div>

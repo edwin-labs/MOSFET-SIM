@@ -1,0 +1,64 @@
+# Physics Overview
+
+## MOSFET Operating Principles
+
+The MOSFET controls current flow through a **channel** region between source and drain. The channel conductivity is modulated by the electric field from the gate electrode, separated from the channel by a thin gate oxide.
+
+## Key Concepts
+
+### Threshold Voltage (Vth)
+
+The **threshold voltage** is the gate voltage required to create a conductive channel. It depends on:
+
+- **Flat-band voltage**: V_FB = φ_ms - Q_f/C_ox
+- **Surface potential**: 2φ_F (for inversion)
+- **Body effect**: γ√(2φ_F + V_SB)
+
+```
+V_th = V_FB + 2φ_F + γ√(2φ_F + V_SB)
+```
+
+### Operating Regions
+
+| Region | Condition | Current |
+|--------|-----------|---------|
+| **Cutoff** | V_GS < V_th | ≈ 0 (subthreshold) |
+| **Linear** | V_GS > V_th, V_DS < V_GS - V_th | Ohmic |
+| **Saturation** | V_GS > V_th, V_DS ≥ V_GS - V_th | Pinch-off |
+
+### Subthreshold Conduction
+
+Below threshold, the current doesn't go to zero immediately. The **subthreshold swing (SS)** characterizes how sharply the transistor turns off:
+
+```
+SS = (dV_GS)/(d log₁₀ I_D) ≈ 2.3 × (kT/q) × n
+```
+
+The ideal SS at room temperature is **60 mV/decade**.
+
+## Material Parameters
+
+### Silicon Properties
+
+| Property | Symbol | Value (300K) |
+|----------|--------|--------------|
+| Band gap | E_g | 1.12 eV |
+| Dielectric constant | ε_Si | 11.7 |
+| Intrinsic carrier concentration | n_i | 1.07×10¹⁰ cm⁻³ |
+| Electron mobility | μ_n | ~1400 cm²/V·s |
+| Hole mobility | μ_p | ~450 cm²/V·s |
+
+### Gate Oxide Materials
+
+| Material | Dielectric Constant | Band Gap |
+|----------|---------------------|----------|
+| SiO₂ | 3.9 | 9.0 eV |
+| HfO₂ | 25 | 5.8 eV |
+
+## Capacitance-Voltage Characteristics
+
+The MOS capacitor exhibits three regions in C-V:
+
+1. **Accumulation**: C = C_ox (majority carriers at surface)
+2. **Depletion**: C < C_ox (surface depleted)
+3. **Inversion**: C = C_ox × C_dep / (C_ox + C_dep) (high frequency)

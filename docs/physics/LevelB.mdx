@@ -1,0 +1,89 @@
+# Level B - Semi-empirical Model
+
+Level B extends the analytical model with **short-channel effects** and **semi-empirical corrections**. It provides more realistic results for modern scaled transistors.
+
+## Additional Physics Effects
+
+### 1. Velocity Saturation
+
+At high lateral electric fields, carrier velocity saturates at v_sat:
+
+```
+μ_eff = μ_0 / (1 + μ_0 × E / v_sat)
+```
+
+This modifies the saturation voltage:
+
+```
+V_dsat = (V_ov × E_sat × L) / (E_sat × L + V_ov)
+```
+
+Where E_sat = 2 × v_sat / μ is the saturation field.
+
+### 2. DIBL (Drain-Induced Barrier Lowering)
+
+The drain voltage reduces the source-channel barrier, lowering threshold:
+
+```
+ΔV_th = -η × V_DS
+```
+
+Where η is the DIBL coefficient (typically 20-200 mV/V for short channels).
+
+### 3. Channel Length Modulation (CLM)
+
+In saturation, the channel pinch-off point moves toward the source as V_DS increases:
+
+```
+I_D = I_D,sat × (1 + λ × V_DS)
+```
+
+Where λ ∝ 1/L is the CLM parameter.
+
+### 4. Body Effect
+
+Back-bias affects threshold voltage:
+
+```
+V_th(V_SB) = V_th0 + γ × (√(2φ_F + V_SB) - √(2φ_F))
+```
+
+### 5. Mobility Degradation
+
+Vertical field from gate oxide degrades mobility:
+
+```
+μ_eff = μ_0 / (1 + θ × (V_GS - V_th))
+```
+
+Where θ is the mobility degradation coefficient (~0.1 V⁻¹).
+
+### 6. Non-ideal Subthreshold Swing
+
+Interface traps and depletion capacitance increase SS:
+
+```
+SS = (kT/q) × ln(10) × (1 + C_dep/C_ox + C_it/C_ox)
+```
+
+## Short-Channel V_th Roll-off
+
+Charge sharing between source/drain reduces effective channel charge:
+
+```
+ΔV_th,sc ≈ -(x_j + x_d)/(2L) × 2φ_F
+```
+
+## Additional Metrics
+
+Level B extracts additional metrics:
+- **DIBL**: Measured as (V_th@low_Vds - V_th@high_Vds) / ΔV_DS
+- **gm_max**: Peak transconductance
+- **V_dsat**: Saturation voltage with velocity saturation
+
+## When to Use
+
+- Device design and optimization
+- Short-channel device analysis
+- Process technology comparisons
+- Understanding SCE impact

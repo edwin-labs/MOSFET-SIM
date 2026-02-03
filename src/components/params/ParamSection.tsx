@@ -1,18 +1,26 @@
-import { useState, ReactNode } from 'react';
+import { ReactNode, useCallback } from 'react';
+import { useViewStore } from '../../store/viewStore';
 import styles from './ParamSection.module.css';
 
 interface ParamSectionProps {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  storageKey?: string;
 }
 
-export function ParamSection({ title, children, defaultOpen = true }: ParamSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+export function ParamSection({ title, children, defaultOpen = true, storageKey }: ParamSectionProps) {
+  const key = storageKey || `left-${title.toLowerCase().replace(/\s+/g, '-')}`;
+  const { foldStates, setFoldState } = useViewStore();
+  const isOpen = foldStates[key] ?? defaultOpen;
+
+  const toggle = useCallback(() => {
+    setFoldState(key, !isOpen);
+  }, [key, isOpen, setFoldState]);
 
   return (
     <div className={styles.section}>
-      <button className={styles.header} onClick={() => setIsOpen(!isOpen)}>
+      <button className={styles.header} onClick={toggle}>
         <span className={`${styles.arrow} ${isOpen ? styles.open : ''}`}>
           <ChevronIcon />
         </span>

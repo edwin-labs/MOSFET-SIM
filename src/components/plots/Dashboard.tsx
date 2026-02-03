@@ -70,7 +70,6 @@ export function Dashboard() {
   return (
     <div className={styles.dashboard}>
       <div className={styles.header}>
-        <span className={styles.title}>Device Metrics</span>
         <span className={styles.info}>
           Level {level} | {calcTime.toFixed(1)} ms
         </span>

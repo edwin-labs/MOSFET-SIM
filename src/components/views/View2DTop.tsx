@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { useDeviceStore } from '../../store';
+import { useDeviceStore, useViewStore } from '../../store';
 import styles from './View2D.module.css';
 
 export function View2DTop() {
@@ -7,6 +7,8 @@ export function View2DTop() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { deviceType, deviceParams } = useDeviceStore();
+  const { theme } = useViewStore();
+  const isDark = theme === 'dark';
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -27,7 +29,7 @@ export function View2DTop() {
     const width = rect.width;
     const height = rect.height;
 
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = isDark ? '#1a1a2e' : '#f0f0f0';
     ctx.fillRect(0, 0, width, height);
 
     const isNMOS = deviceType === 'nmos';
@@ -77,7 +79,7 @@ export function View2DTop() {
     ctx.fillRect(toX(-L / 2), toY(W / 2 + 10), L * scale, (W + 20) * scale);
 
     // Labels
-    ctx.fillStyle = '#e0e0e0';
+    ctx.fillStyle = isDark ? '#e0e0e0' : '#1f2937';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('S', toX(-L / 2 - lddLen - sdLen / 2), toY(0) + 4);
@@ -88,7 +90,7 @@ export function View2DTop() {
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Top View (X-Y)', 10, 16);
-  }, [deviceType, deviceParams]);
+  }, [deviceType, deviceParams, isDark]);
 
   useEffect(() => {
     draw();

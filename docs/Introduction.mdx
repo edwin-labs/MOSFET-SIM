@@ -1,0 +1,46 @@
+# MOSFET Junction Simulator
+
+Welcome to the MOSFET Junction Simulator documentation. This interactive web application allows you to explore MOSFET device physics through simulation and visualization.
+
+## What is MOSFET?
+
+A **Metal-Oxide-Semiconductor Field-Effect Transistor (MOSFET)** is the fundamental building block of modern integrated circuits. It acts as an electrically controlled switch that controls current flow between the **source** and **drain** terminals based on the voltage applied to the **gate** terminal.
+
+## Simulator Features
+
+### Multi-Level Physics
+
+The simulator provides three levels of physics models:
+
+| Level | Model Type | Description | Use Case |
+|-------|------------|-------------|----------|
+| **A** | Analytical | Classical Shockley equations | Quick analysis, learning |
+| **B** | Semi-empirical | Short-channel effects | Device design exploration |
+| **C** | Numerical | 2D Poisson + Drift-Diffusion | Accurate simulation |
+
+### Visualization
+
+- **3D View**: Interactive MOSFET structure with rotation and zoom
+- **2D Views**: Front, Top, and Side cross-sections
+- **Doping Colormap**: Visualize dopant distribution
+
+### Analysis
+
+- **I-V Characteristics**: Output (Id vs Vds) and Transfer (Id vs Vgs)
+- **C-V Characteristics**: Gate capacitance vs voltage
+- **Band Diagram**: Energy band structure
+- **Device Metrics**: Vth, SS, Ion/Ioff, DIBL, gm
+
+## Getting Started
+
+1. Select device type: **nMOS** or **pMOS**
+2. Choose physics level: **A**, **B**, or **C**
+3. Adjust device parameters in the left sidebar
+4. View results in the 3D/2D views and plots
+
+## Navigation
+
+Use the sidebar on the left to explore:
+
+- **Physics**: Deep dive into the simulation models
+- **User Guide**: Step-by-step usage instructions

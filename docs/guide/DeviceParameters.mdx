@@ -1,0 +1,77 @@
+# Device Parameters
+
+This guide explains all the device parameters available in the simulator.
+
+## Gate Stack
+
+### Oxide Thickness (tox)
+- **Range**: 0.5 - 10 nm
+- **Default**: 2 nm
+- **Effect**: Lower tox increases Cox, improves gate control, but may increase gate leakage
+
+### Channel Length (Leff)
+- **Range**: 20 - 500 nm
+- **Default**: 45 nm
+- **Effect**: Shorter channels enable faster switching but suffer from short-channel effects
+
+### Work Function
+- **Range**: 4.0 - 5.5 eV
+- **Effect**: Adjusts flat-band voltage and threshold
+
+## Channel
+
+### Channel Doping (Nch)
+- **Range**: 10¹⁵ - 10¹⁹ cm⁻³
+- **Default**: 10¹⁷ cm⁻³
+- **Effect**: Higher doping increases Vth and reduces DIBL, but degrades mobility
+
+## Source/Drain
+
+### S/D Doping (NSD)
+- **Range**: 10¹⁸ - 10²¹ cm⁻³
+- **Default**: 10²⁰ cm⁻³
+- **Effect**: Higher doping reduces contact resistance but increases junction capacitance
+
+### Junction Depth (xj)
+- **Range**: 10 - 200 nm
+- **Default**: 30 nm
+- **Effect**: Shallower junctions reduce short-channel effects
+
+### LDD Doping (NLDD)
+- **Range**: 10¹⁷ - 10²⁰ cm⁻³
+- **Effect**: Reduces hot-carrier effects and gate-drain overlap capacitance
+
+### LDD Length (LLDD)
+- **Range**: 5 - 50 nm
+- **Effect**: Longer LDD reduces electric field at drain but increases Ron
+
+## Substrate
+
+### Substrate Doping (Nsub)
+- **Range**: 10¹⁴ - 10¹⁸ cm⁻³
+- **Default**: 10¹⁷ cm⁻³
+- **Effect**: Sets body effect coefficient and depletion width
+
+## Geometry
+
+### Channel Width (W)
+- **Range**: 100 - 10000 nm
+- **Effect**: Wider channel increases current proportionally
+
+### Gate-S/D Overlap
+- **Range**: 0 - 20 nm
+- **Effect**: Affects overlap capacitance and Miller effect
+
+## Advanced Parameters
+
+### Fixed Oxide Charge (Qf)
+- **Range**: ±10¹² cm⁻²
+- **Effect**: Shifts flat-band and threshold voltages
+
+### Interface Trap Density (Dit)
+- **Range**: 0 - 10¹³ cm⁻² eV⁻¹
+- **Effect**: Increases subthreshold swing, causes frequency dispersion
+
+### Series Resistance (Rs, Rd)
+- **Range**: 0 - 1000 Ω
+- **Effect**: Reduces effective Vds, limits Ion

@@ -9,7 +9,9 @@ export function View2DFront() {
 
   const { deviceType, deviceParams } = useDeviceStore();
   const { depletionWidth, doping2d } = useSimulationStore();
-  const { colormap } = useViewStore();
+  const { colormap, theme } = useViewStore();
+
+  const isDark = theme === 'dark';
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -32,7 +34,7 @@ export function View2DFront() {
     const height = rect.height;
 
     // Clear
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = isDark ? '#1a1a2e' : '#f0f0f0';
     ctx.fillRect(0, 0, width, height);
 
     // Device dimensions
@@ -113,7 +115,7 @@ export function View2DFront() {
     }
 
     // Draw labels
-    ctx.fillStyle = '#e0e0e0';
+    ctx.fillStyle = isDark ? '#e0e0e0' : '#1f2937';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Source', toX(-L / 2 - lddLen - sdLen / 2), toY(-xj - 10));
@@ -177,12 +179,13 @@ export function View2DFront() {
 
     // Draw scale bar
     const scaleBarLen = 50; // nm
-    ctx.strokeStyle = '#e0e0e0';
+    ctx.strokeStyle = isDark ? '#e0e0e0' : '#1f2937';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(20, height - 20);
     ctx.lineTo(20 + scaleBarLen * scale, height - 20);
     ctx.stroke();
+    ctx.fillStyle = isDark ? '#e0e0e0' : '#1f2937';
     ctx.font = '10px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`${scaleBarLen} nm`, 20, height - 8);
@@ -191,7 +194,7 @@ export function View2DFront() {
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Front View (X-Z)', 10, 16);
-  }, [deviceType, deviceParams, depletionWidth, colormap, doping2d]);
+  }, [deviceType, deviceParams, depletionWidth, colormap, doping2d, isDark]);
 
   useEffect(() => {
     draw();

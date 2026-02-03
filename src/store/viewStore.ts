@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type ColormapType =
   | 'structure'
@@ -25,6 +26,7 @@ interface ViewStore {
   clipPlaneEnabled: boolean;
   clipPlanePosition: number;
   autoSimulate: boolean;
+  foldStates: Record<string, boolean>;
 
   setColormap: (colormap: ColormapType) => void;
   setPlotTab: (tab: PlotTab) => void;
@@ -36,51 +38,76 @@ interface ViewStore {
   toggleClipPlane: () => void;
   setClipPlanePosition: (position: number) => void;
   setAutoSimulate: (auto: boolean) => void;
+  setFoldState: (key: string, isOpen: boolean) => void;
+  getFoldState: (key: string, defaultOpen: boolean) => boolean;
 }
 
-export const useViewStore = create<ViewStore>((set) => ({
-  colormap: 'structure',
-  plotTab: 'iv',
-  theme: 'dark',
-  showDepletion: true,
-  showWireframe: false,
-  showCurrentFlow: false,
-  clipPlaneEnabled: false,
-  clipPlanePosition: 0.5,
-  autoSimulate: true,
+export const useViewStore = create<ViewStore>()(
+  persist(
+    (set, get) => ({
+      colormap: 'structure',
+      plotTab: 'iv',
+      theme: 'dark',
+      showDepletion: true,
+      showWireframe: false,
+      showCurrentFlow: false,
+      clipPlaneEnabled: false,
+      clipPlanePosition: 0.5,
+      autoSimulate: true,
+      foldStates: {},
 
-  setColormap: (colormap) => set({ colormap }),
+      setColormap: (colormap) => set({ colormap }),
 
-  setPlotTab: (plotTab) => set({ plotTab }),
+      setPlotTab: (plotTab) => set({ plotTab }),
 
-  toggleTheme: () =>
-    set((state) => ({
-      theme: state.theme === 'dark' ? 'light' : 'dark',
-    })),
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === 'dark' ? 'light' : 'dark',
+        })),
 
-  setTheme: (theme) => set({ theme }),
+      setTheme: (theme) => set({ theme }),
 
-  toggleDepletion: () =>
-    set((state) => ({
-      showDepletion: !state.showDepletion,
-    })),
+      toggleDepletion: () =>
+        set((state) => ({
+          showDepletion: !state.showDepletion,
+        })),
 
-  toggleWireframe: () =>
-    set((state) => ({
-      showWireframe: !state.showWireframe,
-    })),
+      toggleWireframe: () =>
+        set((state) => ({
+          showWireframe: !state.showWireframe,
+        })),
 
-  toggleCurrentFlow: () =>
-    set((state) => ({
-      showCurrentFlow: !state.showCurrentFlow,
-    })),
+      toggleCurrentFlow: () =>
+        set((state) => ({
+          showCurrentFlow: !state.showCurrentFlow,
+        })),
 
-  toggleClipPlane: () =>
-    set((state) => ({
-      clipPlaneEnabled: !state.clipPlaneEnabled,
-    })),
+      toggleClipPlane: () =>
+        set((state) => ({
+          clipPlaneEnabled: !state.clipPlaneEnabled,
+        })),
 
-  setClipPlanePosition: (clipPlanePosition) => set({ clipPlanePosition }),
+      setClipPlanePosition: (clipPlanePosition) => set({ clipPlanePosition }),
 
-  setAutoSimulate: (autoSimulate) => set({ autoSimulate }),
-}));
+      setAutoSimulate: (autoSimulate) => set({ autoSimulate }),
+
+      setFoldState: (key, isOpen) =>
+        set((state) => ({
+          foldStates: { ...state.foldStates, [key]: isOpen },
+        })),
+
+      getFoldState: (key, defaultOpen) => {
+        const state = get();
+        return state.foldStates[key] ?? defaultOpen;
+      },
+    }),
+    {
+      name: 'mosfet-sim-view',
+      partialize: (state) => ({
+        theme: state.theme,
+        foldStates: state.foldStates,
+        autoSimulate: state.autoSimulate,
+      }),
+    }
+  )
+);

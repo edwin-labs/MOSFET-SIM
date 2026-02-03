@@ -62,7 +62,7 @@ export function View3D() {
   const arrowsRef = useRef<THREE.Group | null>(null);
   const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
   const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
-  const { scene, camera, renderer } = useThreeJS(containerRef);
+  const { scene, camera, renderer, sceneVersion } = useThreeJS(containerRef);
 
   const { deviceType, deviceParams, bias } = useDeviceStore();
   const { depletionWidth, metrics } = useSimulationStore();
@@ -362,7 +362,7 @@ export function View3D() {
       scene.remove(arrowsRef.current);
       arrowsRef.current = null;
     }
-  }, [scene, deviceType, deviceParams, showWireframe, depletionWidth, showDepletion, colormap, showCurrentFlow, bias]);
+  }, [scene, sceneVersion, deviceType, deviceParams, showWireframe, depletionWidth, showDepletion, colormap, showCurrentFlow, bias]);
 
   // Update depletion region visibility
   useEffect(() => {

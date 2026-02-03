@@ -116,3 +116,9 @@
   outline: none;
   border-color: var(--accent-color);
 }
+
+.levelInfo {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 2px;
+}

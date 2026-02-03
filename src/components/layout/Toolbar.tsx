@@ -45,24 +45,30 @@ export function Toolbar() {
           <button
             className={`${styles.toggleBtn} ${level === 'A' ? styles.active : ''}`}
             onClick={() => setLevel('A')}
+            title="Analytical Shockley model with subthreshold"
           >
             A
           </button>
           <button
             className={`${styles.toggleBtn} ${level === 'B' ? styles.active : ''}`}
             onClick={() => setLevel('B')}
-            title="Level B (Semi-empirical)"
+            title="Semi-empirical: Velocity saturation, DIBL, CLM, Body effect"
           >
             B
           </button>
           <button
             className={`${styles.toggleBtn} ${level === 'C' ? styles.active : ''}`}
             onClick={() => setLevel('C')}
-            title="Level C (Numerical Poisson-DD)"
+            title="Numerical 2D Poisson + Drift-Diffusion (Gummel iteration)"
           >
             C
           </button>
         </div>
+        <span className={styles.levelInfo}>
+          {level === 'A' && 'Analytical'}
+          {level === 'B' && 'Semi-empirical'}
+          {level === 'C' && 'Numerical'}
+        </span>
       </div>
 
       <div className={styles.group}>

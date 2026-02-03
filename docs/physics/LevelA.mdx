@@ -1,0 +1,66 @@
+# Level A - Analytical Model
+
+Level A implements the **classical Shockley MOSFET equations** with smooth subthreshold transition. It provides fast, analytical solutions ideal for understanding basic MOSFET behavior.
+
+## Drain Current Model
+
+### Above Threshold (V_GS > V_th)
+
+**Linear Region** (V_DS < V_GS - V_th):
+
+```
+I_D = μ × C_ox × (W/L) × [(V_GS - V_th) × V_DS - V_DS²/2]
+```
+
+**Saturation Region** (V_DS ≥ V_GS - V_th):
+
+```
+I_D = (μ × C_ox / 2) × (W/L) × (V_GS - V_th)²
+```
+
+### Subthreshold Region (V_GS < V_th)
+
+```
+I_sub = I_0 × exp(V_GS / (n × V_T)) × [1 - exp(-V_DS / V_T)]
+```
+
+Where:
+- **n**: Subthreshold swing factor (~1.5)
+- **V_T**: Thermal voltage (kT/q ≈ 26 mV at 300K)
+- **I_0**: Pre-exponential current factor
+
+## Threshold Voltage
+
+```
+V_th = V_FB + 2φ_F + γ√(2φ_F + V_SB)
+```
+
+Where:
+- **V_FB**: Flat-band voltage = φ_ms - Q_f/C_ox
+- **φ_F**: Fermi potential = (kT/q) × ln(N_A/n_i)
+- **γ**: Body effect coefficient = √(2qε_Si × N_A) / C_ox
+
+## Capacitance Model
+
+The high-frequency MOS capacitance model:
+
+| Region | Capacitance |
+|--------|-------------|
+| Accumulation | C = C_ox |
+| Depletion | C = C_ox × C_dep / (C_ox + C_dep) |
+| Inversion | C = C_min (HF) |
+
+## Limitations
+
+Level A assumes:
+- Long-channel behavior (no velocity saturation)
+- No short-channel effects
+- Ideal mobility (no field dependence)
+- No DIBL or CLM
+
+## When to Use
+
+- Quick parameter exploration
+- Understanding basic MOSFET physics
+- Educational purposes
+- Initial device sizing

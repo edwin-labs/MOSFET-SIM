@@ -1,6 +1,5 @@
 .dashboard {
-  padding: 12px;
-  height: 100%;
+  padding: 8px;
   overflow-y: auto;
 }
 
@@ -8,68 +7,67 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .info {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
 }
 
 .cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
 }
 
 .card {
   background: var(--bg-tertiary);
-  border-radius: 6px;
-  padding: 10px 12px;
+  border-radius: 4px;
+  padding: 6px 8px;
   border: 1px solid transparent;
   transition: all 0.15s ease;
 }
 
 .card:hover {
   border-color: var(--border-color);
-  transform: translateX(2px);
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 .cardLabel {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--text-secondary);
 }
 
 .cardSymbol {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--accent-color);
   font-family: 'Courier New', monospace;
 }
 
 .cardValue {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 1px;
 }
 
 .cardDescription {
-  font-size: 10px;
+  font-size: 8px;
   color: var(--text-muted);
 }
 
@@ -77,7 +75,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  padding: 20px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }

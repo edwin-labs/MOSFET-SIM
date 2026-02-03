@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useViewStore } from '../store/viewStore';
@@ -8,6 +8,7 @@ interface UseThreeJSReturn {
   camera: THREE.PerspectiveCamera | null;
   renderer: THREE.WebGLRenderer | null;
   controls: OrbitControls | null;
+  sceneVersion: number;
 }
 
 export function useThreeJS(
@@ -18,6 +19,9 @@ export function useThreeJS(
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animationIdRef = useRef<number | null>(null);
+
+  // Use state to track scene version and force re-renders when scene changes
+  const [sceneVersion, setSceneVersion] = useState(0);
 
   const theme = useViewStore((state) => state.theme);
 
@@ -124,6 +128,9 @@ export function useThreeJS(
     };
     animate();
 
+    // Trigger re-render so consuming components see the new scene
+    setSceneVersion((v) => v + 1);
+
     // Resize observer
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -157,5 +164,6 @@ export function useThreeJS(
     camera: cameraRef.current,
     renderer: rendererRef.current,
     controls: controlsRef.current,
+    sceneVersion,
   };
 }
