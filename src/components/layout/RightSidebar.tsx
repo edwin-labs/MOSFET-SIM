@@ -1,4 +1,4 @@
-import { useViewStore } from '../../store';
+import { useState } from 'react';
 import { IVPlot } from '../plots/IVPlot';
 import { CVPlot } from '../plots/CVPlot';
 import { BandDiagram } from '../plots/BandDiagram';
@@ -8,42 +8,59 @@ import { Dashboard } from '../plots/Dashboard';
 import { FieldPlotsPanel } from '../plots/FieldPlots';
 import styles from './RightSidebar.module.css';
 
-const TABS = [
-  { id: 'iv' as const, label: 'I-V' },
-  { id: 'cv' as const, label: 'C-V' },
-  { id: 'band' as const, label: 'Band' },
-  { id: 'gmgds' as const, label: 'gm/gds' },
-  { id: 'profile' as const, label: 'Doping' },
-  { id: 'fields' as const, label: 'Fields' },
-  { id: 'dashboard' as const, label: 'Metrics' },
-];
+interface FoldableSectionProps {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}
 
-export function RightSidebar() {
-  const { plotTab, setPlotTab } = useViewStore();
+function FoldableSection({ title, defaultOpen = false, children }: FoldableSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={styles.sidebar}>
-      <div className={styles.tabs}>
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            className={`${styles.tab} ${plotTab === tab.id ? styles.active : ''}`}
-            onClick={() => setPlotTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className={styles.section}>
+      <button
+        className={`${styles.sectionHeader} ${isOpen ? styles.open : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={styles.sectionTitle}>{title}</span>
+        <span className={styles.chevron}>{isOpen ? '▼' : '▶'}</span>
+      </button>
+      {isOpen && <div className={styles.sectionContent}>{children}</div>}
+    </div>
+  );
+}
 
-      <div className={styles.content}>
-        {plotTab === 'iv' && <IVPlot />}
-        {plotTab === 'cv' && <CVPlot />}
-        {plotTab === 'band' && <BandDiagram />}
-        {plotTab === 'gmgds' && <GmGdsPlot />}
-        {plotTab === 'profile' && <DopingProfile />}
-        {plotTab === 'fields' && <FieldPlotsPanel />}
-        {plotTab === 'dashboard' && <Dashboard />}
-      </div>
+export function RightSidebar() {
+  return (
+    <div className={styles.sidebar}>
+      <FoldableSection title="Device Metrics" defaultOpen={true}>
+        <Dashboard />
+      </FoldableSection>
+
+      <FoldableSection title="I-V Characteristics" defaultOpen={true}>
+        <IVPlot />
+      </FoldableSection>
+
+      <FoldableSection title="C-V Characteristics">
+        <CVPlot />
+      </FoldableSection>
+
+      <FoldableSection title="Band Diagram">
+        <BandDiagram />
+      </FoldableSection>
+
+      <FoldableSection title="Transconductance (gm/gds)">
+        <GmGdsPlot />
+      </FoldableSection>
+
+      <FoldableSection title="Doping Profile">
+        <DopingProfile />
+      </FoldableSection>
+
+      <FoldableSection title="2D Fields (Level C)">
+        <FieldPlotsPanel />
+      </FoldableSection>
     </div>
   );
 }
