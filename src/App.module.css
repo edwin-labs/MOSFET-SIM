@@ -1,0 +1,123 @@
+:root {
+  /* Dark theme (default) */
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --bg-input: #1a1a2e;
+  --surface-primary: #1f1f3a;
+  --surface-secondary: #252547;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --border-color: #2a2a4a;
+  --accent-color: #4a9eff;
+  --accent-hover: #6ab0ff;
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --error-color: #f87171;
+  --nmos-color: #4a9eff;
+  --pmos-color: #f472b6;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+[data-theme='light'] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --bg-input: #ffffff;
+  --surface-primary: #ffffff;
+  --surface-secondary: #f9fafb;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border-color: #d1d5db;
+  --accent-color: #2563eb;
+  --accent-hover: #3b82f6;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: 40px 1fr 28px;
+  grid-template-columns: 280px 1fr 320px;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'left main right'
+    'status status status';
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.toolbar {
+  grid-area: toolbar;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 16px;
+}
+
+.leftSidebar {
+  grid-area: left;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.mainView {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.rightSidebar {
+  grid-area: right;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.statusBar {
+  grid-area: status;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Scrollbar styling */
+.leftSidebar::-webkit-scrollbar,
+.rightSidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.leftSidebar::-webkit-scrollbar-track,
+.rightSidebar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.leftSidebar::-webkit-scrollbar-thumb,
+.rightSidebar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.leftSidebar::-webkit-scrollbar-thumb:hover,
+.rightSidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

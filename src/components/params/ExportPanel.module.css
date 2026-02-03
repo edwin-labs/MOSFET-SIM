@@ -1,0 +1,84 @@
+.container {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exportBtn,
+.importBtn {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exportBtn:hover:not(:disabled),
+.importBtn:hover:not(:disabled) {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.importBtn {
+  background: var(--surface-primary);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.importBtn:hover {
+  background: var(--accent-color);
+  color: white;
+}
+
+.info {
+  margin-top: 12px;
+  padding: 8px;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.info p {
+  margin: 0 0 4px 0;
+}
+
+.info p:last-child {
+  margin-bottom: 0;
+}

@@ -1,0 +1,83 @@
+.dashboard {
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.info {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--border-color);
+  transform: translateX(2px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cardLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.cardSymbol {
+  font-size: 11px;
+  color: var(--accent-color);
+  font-family: 'Courier New', monospace;
+}
+
+.cardValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.cardDescription {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+}

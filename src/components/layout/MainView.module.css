@@ -1,0 +1,26 @@
+.mainView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 2px;
+  background: var(--border-color);
+}
+
+.view3d {
+  flex: 1;
+  min-height: 0;
+  background: var(--bg-primary);
+}
+
+.view2dContainer {
+  height: 35%;
+  min-height: 150px;
+  display: flex;
+  gap: 2px;
+}
+
+.view2d {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-primary);
+}

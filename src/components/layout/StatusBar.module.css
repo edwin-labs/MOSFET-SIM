@@ -1,0 +1,67 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.label {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.value {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.value.computing {
+  color: var(--accent-color);
+  animation: pulse 1s infinite;
+}
+
+.value.error {
+  color: var(--error-color);
+}
+
+.value.nmos {
+  color: var(--nmos-color);
+}
+
+.value.pmos {
+  color: var(--pmos-color);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.statusDot.idle {
+  background: var(--text-muted);
+}
+
+.statusDot.computing {
+  background: var(--accent-color);
+  animation: pulse 1s infinite;
+}
+
+.statusDot.done {
+  background: var(--success-color);
+}
+
+.statusDot.error {
+  background: var(--error-color);
+}

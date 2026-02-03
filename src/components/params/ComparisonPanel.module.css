@@ -1,0 +1,165 @@
+.container {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.toggle input {
+  accent-color: var(--accent-color);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.saveBtn,
+.clearBtn {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.saveBtn {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clearBtn {
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+}
+
+.clearBtn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: white;
+}
+
+.empty {
+  text-align: center;
+  padding: 16px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.snapshotList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.snapshotItem {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.snapshotLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.snapshotLabel input {
+  accent-color: var(--accent-color);
+}
+
+.colorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.snapshotName {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.snapshotInfo {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  margin-left: 26px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.removeBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+}
+
+.snapshotItem:hover .removeBtn {
+  opacity: 1;
+}
+
+.removeBtn:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+.compareInfo {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 4px;
+  font-size: 10px;
+  text-align: center;
+}
