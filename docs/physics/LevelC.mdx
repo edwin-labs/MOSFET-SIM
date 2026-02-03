@@ -8,37 +8,40 @@ Level C provides **self-consistent numerical solution** of semiconductor device 
 
 Relates electrostatic potential to charge density:
 
-```
-∇²ψ = -ρ/ε = -q(p - n + N_D⁺ - N_A⁻)/ε_Si
-```
+$$
+\nabla^2 \psi = -\frac{\rho}{\varepsilon} = -\frac{q(p - n + N_D^+ - N_A^-)}{\varepsilon_{Si}}
+$$
 
 Where:
-- **ψ**: Electrostatic potential
-- **n, p**: Electron and hole concentrations
-- **N_D⁺, N_A⁻**: Ionized donor and acceptor concentrations
+- $\psi$: Electrostatic potential
+- $n$, $p$: Electron and hole concentrations
+- $N_D^+$, $N_A^-$: Ionized donor and acceptor concentrations
 
 ### 2. Continuity Equations
 
 Conservation of carriers with generation/recombination:
 
 **Electrons**:
-```
-∂n/∂t = (1/q) × ∇·J_n + G - R
-```
+$$
+\frac{\partial n}{\partial t} = \frac{1}{q} \nabla \cdot \mathbf{J}_n + G - R
+$$
 
 **Holes**:
-```
-∂p/∂t = -(1/q) × ∇·J_p + G - R
-```
+$$
+\frac{\partial p}{\partial t} = -\frac{1}{q} \nabla \cdot \mathbf{J}_p + G - R
+$$
 
 ### 3. Drift-Diffusion Current
 
-```
-J_n = qμ_n × n × E + qD_n × ∇n
-J_p = qμ_p × p × E - qD_p × ∇p
-```
+$$
+\mathbf{J}_n = q\mu_n n \mathbf{E} + qD_n \nabla n
+$$
 
-Using Einstein relation: D = μ × kT/q
+$$
+\mathbf{J}_p = q\mu_p p \mathbf{E} - qD_p \nabla p
+$$
+
+Using Einstein relation: $D = \mu \cdot kT/q$
 
 ## Numerical Methods
 
@@ -52,20 +55,20 @@ Using Einstein relation: D = μ × kT/q
 
 For stable discretization of current density:
 
-```
-J_n = (qD_n/Δx) × [n_{i+1} × B(-Δψ/V_T) - n_i × B(Δψ/V_T)]
-```
+$$
+J_n = \frac{qD_n}{\Delta x} \left[ n_{i+1} \cdot B\left(-\frac{\Delta\psi}{V_T}\right) - n_i \cdot B\left(\frac{\Delta\psi}{V_T}\right) \right]
+$$
 
-Where B(x) = x/(e^x - 1) is the Bernoulli function.
+Where $B(x) = x/(e^x - 1)$ is the Bernoulli function.
 
 ### Gummel Iteration
 
 Self-consistent solution algorithm:
 
-1. **Solve Poisson**: ψ from current n, p
-2. **Solve n-continuity**: Update n from ψ
-3. **Solve p-continuity**: Update p from ψ
-4. **Check convergence**: |Δψ| < tolerance
+1. **Solve Poisson**: $\psi$ from current $n$, $p$
+2. **Solve n-continuity**: Update $n$ from $\psi$
+3. **Solve p-continuity**: Update $p$ from $\psi$
+4. **Check convergence**: $|\Delta\psi| < $ tolerance
 5. **Repeat** if not converged
 
 ### Linear Solver
@@ -76,16 +79,16 @@ BiCGSTAB with Jacobi preconditioning for sparse matrix solution.
 
 | Boundary | Condition |
 |----------|-----------|
-| Gate | Dirichlet: ψ = V_G - φ_ms |
-| Ohmic contacts | Dirichlet: ψ = V + φ_F |
-| Oxide-Si interface | Continuity: ε_ox × E_ox = ε_Si × E_Si |
-| Open boundaries | Neumann: ∇ψ = 0 |
+| Gate | Dirichlet: $\psi = V_G - \phi_{ms}$ |
+| Ohmic contacts | Dirichlet: $\psi = V + \phi_F$ |
+| Oxide-Si interface | Continuity: $\varepsilon_{ox} E_{ox} = \varepsilon_{Si} E_{Si}$ |
+| Open boundaries | Neumann: $\nabla\psi = 0$ |
 
 ## Convergence
 
 - Typical convergence: 10-50 iterations
-- Under-relaxation: ω = 0.1-0.5
-- Tolerance: |Δψ| < 10⁻⁶ V
+- Under-relaxation: $\omega = 0.1 \text{-} 0.5$
+- Tolerance: $|\Delta\psi| < 10^{-6}$ V
 
 ## Computational Cost
 

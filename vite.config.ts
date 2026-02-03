@@ -12,4 +12,14 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'plotly': ['plotly.js-dist-min', 'react-plotly.js'],
+          'three': ['three'],
+        },
+      },
+    },
+  },
 })
