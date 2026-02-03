@@ -97,10 +97,8 @@ export function FieldPlots({ fieldType = 'potential' }: FieldPlotsProps) {
 
   if (!plotData) {
     return (
-      <div className={styles.plotContainer}>
-        <div className={styles.placeholder}>
-          No Level C data available. Run a simulation first.
-        </div>
+      <div className={styles.placeholder}>
+        No Level C data available. Run a simulation first.
       </div>
     );
   }
@@ -126,29 +124,27 @@ export function FieldPlots({ fieldType = 'potential' }: FieldPlotsProps) {
   };
 
   return (
-    <div className={styles.plotContainer}>
-      <div className={styles.plotWrapper} style={{ height: '300px' }}>
-        <Plot
-          data={[
-            {
-              type: 'heatmap',
-              x: plotData.x,
-              y: plotData.z,
-              z: plotData.values,
-              colorscale: plotData.colorscale,
-              zmin: plotData.zmin,
-              zmax: plotData.zmax,
-              colorbar: {
-                title: { text: '', font: { size: 9 } },
-                tickfont: { size: 9 },
-              },
+    <div className={styles.plotWrapper}>
+      <Plot
+        data={[
+          {
+            type: 'heatmap',
+            x: plotData.x,
+            y: plotData.z,
+            z: plotData.values,
+            colorscale: plotData.colorscale,
+            zmin: plotData.zmin,
+            zmax: plotData.zmax,
+            colorbar: {
+              title: { text: '', font: { size: 9 } },
+              tickfont: { size: 9 },
             },
-          ]}
-          layout={layout}
-          config={{ responsive: true, displayModeBar: false }}
-          style={{ width: '100%', height: '100%' }}
-        />
-      </div>
+          },
+        ]}
+        layout={layout}
+        config={{ responsive: true, displayModeBar: false }}
+        style={{ width: '100%', height: '100%' }}
+      />
     </div>
   );
 }

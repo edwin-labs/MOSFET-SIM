@@ -53,36 +53,6 @@
 
 .sectionContent {
   background: var(--bg-secondary);
-  max-height: 500px;
-  overflow-y: auto;
-  animation: slideDown 0.2s ease;
+  overflow: visible;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 500px;
-  }
-}
-
-/* Scrollbar for section content */
-.sectionContent::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sectionContent::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-.sectionContent::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.sectionContent::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
