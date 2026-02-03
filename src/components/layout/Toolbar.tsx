@@ -77,13 +77,14 @@ export function Toolbar() {
           <button
             className={`${styles.toggleBtn} ${mode === 'device' ? styles.active : ''}`}
             onClick={() => setMode('device')}
+            title="Direct device parameter input"
           >
             Device
           </button>
           <button
             className={`${styles.toggleBtn} ${mode === 'process' ? styles.active : ''}`}
             onClick={() => setMode('process')}
-            disabled
+            title="Process-based parameter input (implant doses, anneals)"
           >
             Process
           </button>

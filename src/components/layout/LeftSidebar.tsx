@@ -1,6 +1,7 @@
 import { useDeviceStore } from '../../store';
 import { BiasControls } from '../params/BiasControls';
 import { DeviceParams } from '../params/DeviceParams';
+import { ProcessParams } from '../params/ProcessParams';
 import { LevelCControls } from '../params/LevelCControls';
 import { AdvancedPhysicsPanel } from '../params/AdvancedPhysicsPanel';
 import { ComparisonPanel } from '../params/ComparisonPanel';
@@ -14,9 +15,7 @@ export function LeftSidebar() {
     <div className={styles.sidebar}>
       <BiasControls />
       {mode === 'device' && <DeviceParams />}
-      {mode === 'process' && (
-        <div className={styles.placeholder}>Process Mode (Coming Soon)</div>
-      )}
+      {mode === 'process' && <ProcessParams />}
       <AdvancedPhysicsPanel />
       {level === 'C' && <LevelCControls />}
       <ComparisonPanel />
