@@ -26,9 +26,9 @@ export interface UseLevelCReturn {
 }
 
 export function useLevelC(): UseLevelCReturn {
-  const { deviceType, deviceParams, bias, temperature } = useDeviceStore();
+  const { deviceType, deviceParams, bias, temperature, useGPU } = useDeviceStore();
   const { setResult, setStatus, setProgress } = useSimulationStore();
-  const { state: workerState, solve, sweep, cancel } = useWorker();
+  const { state: workerState, gpuAvailableInWorker, solve, sweep, cancel } = useWorker();
 
   const [sweepPoints, setSweepPoints] = useState<{ V: number; Id: number }[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -40,7 +40,8 @@ export function useLevelC(): UseLevelCReturn {
 
     try {
       const biasObj = { Vgs: bias.vgs, Vds: bias.vds, Vbs: bias.vbs };
-      const result = await solve(deviceParams, deviceType, biasObj, temperature);
+      const shouldUseGPU = useGPU && gpuAvailableInWorker;
+      const result = await solve(deviceParams, deviceType, biasObj, temperature, shouldUseGPU);
 
       // Generate doping profiles
       const doping1d = DopingEngine.generateVertical1D(deviceParams, deviceType);
@@ -71,7 +72,7 @@ export function useLevelC(): UseLevelCReturn {
     } finally {
       setIsRunning(false);
     }
-  }, [deviceType, deviceParams, bias, temperature, solve, setResult, setStatus]);
+  }, [deviceType, deviceParams, bias, temperature, useGPU, gpuAvailableInWorker, solve, setResult, setStatus]);
 
   const runSweep = useCallback(async (
     type: 'transfer' | 'output',
@@ -88,6 +89,8 @@ export function useLevelC(): UseLevelCReturn {
       setProgress(point.index / point.total);
     };
 
+    const shouldUseGPU = useGPU && gpuAvailableInWorker;
+
     try {
       const result = await sweep(
         deviceParams,
@@ -96,7 +99,8 @@ export function useLevelC(): UseLevelCReturn {
         fixedV,
         range,
         temperature,
-        onPoint
+        onPoint,
+        shouldUseGPU
       );
 
       // Generate doping profiles
@@ -190,7 +194,7 @@ export function useLevelC(): UseLevelCReturn {
       setIsRunning(false);
       setProgress(0);
     }
-  }, [deviceType, deviceParams, temperature, sweep, setResult, setStatus, setProgress]);
+  }, [deviceType, deviceParams, temperature, useGPU, gpuAvailableInWorker, sweep, setResult, setStatus, setProgress]);
 
   return {
     state: {

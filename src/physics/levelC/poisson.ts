@@ -11,7 +11,7 @@
 import { Q, EPS0, K_B } from '../constants';
 import { Si, niSi } from '../materials';
 import { Mesh2D, meshIndex, isInSilicon, getDoping, RegionType } from './mesh';
-import { CSRBuilder, CSRMatrix, biCGSTAB } from './sparseSolver';
+import { CSRBuilder, CSRMatrix, biCGSTAB, solve } from './sparseSolver';
 import type { DeviceParams, DeviceType } from '../../types/device';
 
 export interface PoissonResult {
@@ -302,6 +302,93 @@ export function solvePoisson(
 
     // Solve linear system for update
     const result = biCGSTAB(A, b, psi, { maxIter: 500, tolerance: 1e-10 });
+
+    if (!result.converged) {
+      console.warn(`Poisson: linear solver did not converge at Newton iter ${iter}`);
+    }
+
+    // Apply update with damping
+    maxResidual = 0;
+    for (let i = 0; i < N; i++) {
+      if (!isInSilicon(region[i] as RegionType)) continue;
+
+      const dpsi = result.x[i] - psi[i];
+      maxResidual = Math.max(maxResidual, Math.abs(dpsi));
+      psi[i] += opts.dampingFactor * dpsi;
+    }
+
+    // Re-apply boundary conditions
+    applyBoundaryConditions(psi, mesh, params, bias, isNMOS, T);
+
+    if (maxResidual < opts.tolerance) {
+      converged = true;
+      break;
+    }
+  }
+
+  // Compute final carrier concentrations
+  const { n, p } = computeCarriers(psi, Nd, Na, T, region);
+
+  return {
+    psi,
+    n,
+    p,
+    converged,
+    iterations: iter + 1,
+    maxResidual,
+  };
+}
+
+/**
+ * Async Poisson solver with optional GPU acceleration
+ */
+export async function solvePoissonAsync(
+  mesh: Mesh2D,
+  params: DeviceParams,
+  deviceType: DeviceType,
+  bias: { Vgs: number; Vds: number; Vbs: number },
+  T: number,
+  initialPsi: Float64Array | null = null,
+  options: Partial<PoissonOptions> = {},
+  useGPU = false
+): Promise<PoissonResult> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const isNMOS = deviceType === 'nmos';
+  const { nx, nz, z, region } = mesh;
+  const N = nx * nz;
+
+  // Initialize potential
+  const psi = new Float64Array(N);
+  if (initialPsi) {
+    psi.set(initialPsi);
+  }
+
+  // Pre-compute doping at each point
+  const Nd = new Float64Array(N);
+  const Na = new Float64Array(N);
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      const idx = meshIndex(i, j, nx);
+      const dop = getDoping(region[idx] as RegionType, params, isNMOS, z[j]);
+      Nd[idx] = dop.Nd;
+      Na[idx] = dop.Na;
+    }
+  }
+
+  // Apply boundary conditions
+  applyBoundaryConditions(psi, mesh, params, bias, isNMOS, T);
+
+  let converged = false;
+  let maxResidual = Infinity;
+  let iter = 0;
+
+  // Newton iteration
+  for (iter = 0; iter < opts.maxIter; iter++) {
+    // Build Jacobian and RHS
+    const { A, b } = buildPoissonMatrix(mesh, psi, Nd, Na, T, isNMOS);
+
+    // Solve linear system for update (async with optional GPU)
+    const result = await solve(A, b, psi, { maxIter: 500, tolerance: 1e-10, useGPU });
 
     if (!result.converged) {
       console.warn(`Poisson: linear solver did not converge at Newton iter ${iter}`);

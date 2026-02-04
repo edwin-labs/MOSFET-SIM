@@ -27,11 +27,13 @@ export interface WorkerState {
 
 export interface UseWorkerReturn {
   state: WorkerState;
+  gpuAvailableInWorker: boolean;
   solve: (
     params: DeviceParams,
     deviceType: DeviceType,
     bias: { Vgs: number; Vds: number; Vbs: number },
-    temperature: number
+    temperature: number,
+    useGPU?: boolean
   ) => Promise<SolveResult>;
   sweep: (
     params: DeviceParams,
@@ -40,7 +42,8 @@ export interface UseWorkerReturn {
     fixedV: number,
     sweepRange: { start: number; end: number; points: number },
     temperature: number,
-    onPoint?: (point: PointUpdate) => void
+    onPoint?: (point: PointUpdate) => void,
+    useGPU?: boolean
   ) => Promise<SweepResult>;
   cancel: () => void;
 }
@@ -68,6 +71,8 @@ export function useWorker(): UseWorkerReturn {
     progress: null,
     error: null,
   });
+
+  const [gpuAvailableInWorker, setGpuAvailableInWorker] = useState(false);
 
   // Initialize worker
   useEffect(() => {
@@ -119,6 +124,10 @@ export function useWorker(): UseWorkerReturn {
             error: payload as string,
           });
           break;
+
+        case 'gpuStatus':
+          setGpuAvailableInWorker((payload as { available: boolean }).available);
+          break;
       }
     };
 
@@ -139,6 +148,12 @@ export function useWorker(): UseWorkerReturn {
 
     workerRef.current = worker;
 
+    // Query GPU availability in worker
+    worker.postMessage({
+      type: 'gpuStatus',
+      id: 'gpu-check',
+    } as WorkerMessage);
+
     return () => {
       worker.terminate();
       workerRef.current = null;
@@ -152,7 +167,8 @@ export function useWorker(): UseWorkerReturn {
     params: DeviceParams,
     deviceType: DeviceType,
     bias: { Vgs: number; Vds: number; Vbs: number },
-    temperature: number
+    temperature: number,
+    useGPU = false
   ): Promise<SolveResult> => {
     const worker = workerRef.current;
     if (!worker) {
@@ -165,6 +181,7 @@ export function useWorker(): UseWorkerReturn {
       deviceType,
       bias,
       temperature,
+      useGPU,
     };
 
     return new Promise((resolve, reject) => {
@@ -194,7 +211,8 @@ export function useWorker(): UseWorkerReturn {
     fixedV: number,
     sweepRange: { start: number; end: number; points: number },
     temperature: number,
-    onPoint?: (point: PointUpdate) => void
+    onPoint?: (point: PointUpdate) => void,
+    useGPU = false
   ): Promise<SweepResult> => {
     const worker = workerRef.current;
     if (!worker) {
@@ -209,6 +227,7 @@ export function useWorker(): UseWorkerReturn {
       fixedV,
       sweepRange,
       temperature,
+      useGPU,
     };
 
     return new Promise((resolve, reject) => {
@@ -259,6 +278,7 @@ export function useWorker(): UseWorkerReturn {
 
   return {
     state,
+    gpuAvailableInWorker,
     solve,
     sweep,
     cancel,

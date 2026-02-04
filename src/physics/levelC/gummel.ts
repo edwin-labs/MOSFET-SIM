@@ -14,8 +14,8 @@
 import { Q, K_B } from '../constants';
 import { niSi, mobilityElectron } from '../materials';
 import { Mesh2D, generateMesh, meshIndex, isInSilicon, getDoping, RegionType } from './mesh';
-import { solvePoisson } from './poisson';
-import { solveContinuity } from './continuity';
+import { solvePoisson, solvePoissonAsync } from './poisson';
+import { solveContinuity, solveContinuityAsync } from './continuity';
 import type { DeviceParams, DeviceType } from '../../types/device';
 import type { NumericalResult2D } from '../../types/simulation';
 
@@ -43,6 +43,7 @@ export interface GummelOptions {
     maxSpacing?: number;
   };
   progressCallback?: (progress: GummelProgress) => void;
+  useGPU?: boolean;  // Enable GPU acceleration
 }
 
 export interface GummelProgress {
@@ -329,6 +330,166 @@ export function solveGummel(
 }
 
 /**
+ * Async Gummel solver with optional GPU acceleration
+ */
+export async function solveGummelAsync(
+  params: DeviceParams,
+  deviceType: DeviceType,
+  bias: { Vgs: number; Vds: number; Vbs: number },
+  T: number,
+  options: Partial<GummelOptions> = {},
+  initialSolution?: GummelResult
+): Promise<GummelResult> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const isNMOS = deviceType === 'nmos';
+  const useGPU = opts.useGPU ?? false;
+
+  // Generate mesh
+  opts.progressCallback?.({
+    iteration: 0,
+    maxIter: opts.maxIter,
+    residual: Infinity,
+    phase: 'mesh',
+  });
+
+  const mesh = initialSolution?.mesh || generateMesh(params, opts.meshOptions);
+  const { nx, nz, z, region } = mesh;
+  const N = nx * nz;
+
+  // Initialize arrays
+  let psi = new Float64Array(N);
+  let n = new Float64Array(N);
+  let p = new Float64Array(N);
+
+  if (initialSolution) {
+    psi.set(initialSolution.psi);
+    n.set(initialSolution.n);
+    p.set(initialSolution.p);
+  } else {
+    // Initialize with equilibrium values
+    const ni = niSi(T);
+    const Vt = K_B * T / Q;
+
+    for (let j = 0; j < nz; j++) {
+      for (let i = 0; i < nx; i++) {
+        const idx = meshIndex(i, j, nx);
+        const reg = region[idx] as RegionType;
+
+        if (!isInSilicon(reg)) {
+          continue;
+        }
+
+        const { Nd, Na } = getDoping(reg, params, isNMOS, z[j]);
+        const Nnet = Nd - Na;
+
+        if (Math.abs(Nnet) > ni) {
+          psi[idx] = (Nnet > 0 ? 1 : -1) * Vt * Math.log(Math.abs(Nnet) / ni);
+        }
+
+        // Equilibrium carriers
+        if (Nnet > 0) {
+          n[idx] = (Nnet + Math.sqrt(Nnet * Nnet + 4 * ni * ni)) / 2;
+          p[idx] = ni * ni / n[idx];
+        } else {
+          p[idx] = (-Nnet + Math.sqrt(Nnet * Nnet + 4 * ni * ni)) / 2;
+          n[idx] = ni * ni / p[idx];
+        }
+      }
+    }
+  }
+
+  let converged = false;
+  let iter = 0;
+  let totalPoissonIters = 0;
+  let totalContinuityIters = 0;
+  let prevPsi = new Float64Array(psi);
+
+  // Gummel iteration loop
+  for (iter = 0; iter < opts.maxIter; iter++) {
+    // 1. Solve Poisson equation (async with optional GPU)
+    opts.progressCallback?.({
+      iteration: iter,
+      maxIter: opts.maxIter,
+      residual: Infinity,
+      phase: 'poisson',
+    });
+
+    const poissonResult = await solvePoissonAsync(mesh, params, deviceType, bias, T, psi, {
+      maxIter: 30,
+      tolerance: 1e-7,
+      dampingFactor: 0.3,
+    }, useGPU);
+
+    psi = poissonResult.psi;
+    totalPoissonIters += poissonResult.iterations;
+
+    // Update carriers from Poisson
+    n = poissonResult.n;
+    p = poissonResult.p;
+
+    // 2. Solve continuity equations (async with optional GPU)
+    opts.progressCallback?.({
+      iteration: iter,
+      maxIter: opts.maxIter,
+      residual: Infinity,
+      phase: 'continuity',
+    });
+
+    const continuityResult = await solveContinuityAsync(mesh, psi, n, p, params, deviceType, T, {
+      maxIter: 20,
+      tolerance: 1e-6,
+      dampingFactor: 0.5,
+    }, useGPU);
+
+    n = continuityResult.n;
+    p = continuityResult.p;
+    totalContinuityIters += continuityResult.iterations;
+
+    // 3. Check convergence
+    opts.progressCallback?.({
+      iteration: iter,
+      maxIter: opts.maxIter,
+      residual: 0,
+      phase: 'convergence',
+    });
+
+    let maxChange = 0;
+    for (let i = 0; i < N; i++) {
+      if (isInSilicon(region[i] as RegionType)) {
+        maxChange = Math.max(maxChange, Math.abs(psi[i] - prevPsi[i]));
+      }
+    }
+
+    if (maxChange < opts.tolerance) {
+      converged = true;
+      break;
+    }
+
+    prevPsi.set(psi);
+  }
+
+  // Compute electric field
+  const { Ex, Ez } = computeElectricField(mesh, psi);
+
+  // Extract drain current
+  const Id = extractDrainCurrent(mesh, psi, n, params, deviceType, T);
+
+  return {
+    mesh,
+    psi,
+    n,
+    p,
+    Ex,
+    Ez,
+    Id,
+    converged,
+    iterations: iter + 1,
+    poissonIters: totalPoissonIters,
+    continuityIters: totalContinuityIters,
+  };
+}
+
+/**
  * Convert Gummel result to NumericalResult2D format for visualization
  */
 export function toNumericalResult2D(result: GummelResult): NumericalResult2D {
@@ -352,9 +513,17 @@ export function toNumericalResult2D(result: GummelResult): NumericalResult2D {
  */
 export class LevelCEngine {
   private lastResult: GummelResult | null = null;
+  private useGPU = false;
 
   /**
-   * Solve for a single bias point
+   * Enable or disable GPU acceleration
+   */
+  setUseGPU(enabled: boolean): void {
+    this.useGPU = enabled;
+  }
+
+  /**
+   * Solve for a single bias point (sync, CPU only)
    */
   solve(
     params: DeviceParams,
@@ -371,7 +540,24 @@ export class LevelCEngine {
   }
 
   /**
-   * I-V sweep (transfer or output characteristics)
+   * Async solve with optional GPU acceleration
+   */
+  async solveAsync(
+    params: DeviceParams,
+    deviceType: DeviceType,
+    bias: { Vgs: number; Vds: number; Vbs: number },
+    T: number,
+    options?: Partial<GummelOptions>
+  ): Promise<GummelResult> {
+    const initialSolution = this.lastResult || undefined;
+    const opts = { ...options, useGPU: this.useGPU };
+    const result = await solveGummelAsync(params, deviceType, bias, T, opts, initialSolution);
+    this.lastResult = result;
+    return result;
+  }
+
+  /**
+   * I-V sweep (transfer or output characteristics) - sync version
    */
   sweepIV(
     params: DeviceParams,
@@ -399,6 +585,45 @@ export class LevelCEngine {
       }
 
       const result = this.solve(params, deviceType, bias, T, options);
+
+      V.push(sweepV);
+      Id.push(result.Id);
+
+      onPoint?.(i, points, sweepV, result.Id);
+    }
+
+    return { V, Id };
+  }
+
+  /**
+   * Async I-V sweep with optional GPU acceleration
+   */
+  async sweepIVAsync(
+    params: DeviceParams,
+    deviceType: DeviceType,
+    sweepType: 'transfer' | 'output',
+    fixedV: number,
+    sweepRange: { start: number; end: number; points: number },
+    T: number,
+    options?: Partial<GummelOptions>,
+    onPoint?: (index: number, total: number, V: number, Id: number) => void
+  ): Promise<{ V: number[]; Id: number[] }> {
+    const V: number[] = [];
+    const Id: number[] = [];
+
+    const { start, end, points } = sweepRange;
+
+    for (let i = 0; i < points; i++) {
+      const sweepV = start + (end - start) * (i / (points - 1));
+
+      let bias: { Vgs: number; Vds: number; Vbs: number };
+      if (sweepType === 'transfer') {
+        bias = { Vgs: sweepV, Vds: fixedV, Vbs: 0 };
+      } else {
+        bias = { Vgs: fixedV, Vds: sweepV, Vbs: 0 };
+      }
+
+      const result = await this.solveAsync(params, deviceType, bias, T, options);
 
       V.push(sweepV);
       Id.push(result.Id);

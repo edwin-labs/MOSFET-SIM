@@ -13,7 +13,7 @@
 import { Q, K_B } from '../constants';
 import { niSi, mobilityElectron, mobilityHole } from '../materials';
 import { Mesh2D, meshIndex, isInSilicon, getDoping, RegionType } from './mesh';
-import { CSRBuilder, CSRMatrix, biCGSTAB } from './sparseSolver';
+import { CSRBuilder, CSRMatrix, biCGSTAB, solve } from './sparseSolver';
 import type { DeviceParams, DeviceType } from '../../types/device';
 
 /**
@@ -427,6 +427,92 @@ export function solveContinuity(
   }
 
   // Compute current densities (placeholder - would need proper S-G flux calculation)
+  const Jn_x = new Float64Array(N);
+  const Jn_z = new Float64Array(N);
+  const Jp_x = new Float64Array(N);
+  const Jp_z = new Float64Array(N);
+
+  return {
+    n,
+    p,
+    Jn_x,
+    Jn_z,
+    Jp_x,
+    Jp_z,
+    converged,
+    iterations: iter + 1,
+  };
+}
+
+/**
+ * Async continuity solver with optional GPU acceleration
+ */
+export async function solveContinuityAsync(
+  mesh: Mesh2D,
+  psi: Float64Array,
+  n0: Float64Array,
+  p0: Float64Array,
+  params: DeviceParams,
+  deviceType: DeviceType,
+  T: number,
+  options: Partial<ContinuityOptions> = {},
+  useGPU = false
+): Promise<ContinuityResult> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const isNMOS = deviceType === 'nmos';
+  const { nx, nz, z, region } = mesh;
+  const N = nx * nz;
+
+  // Copy initial values
+  const n = new Float64Array(n0);
+  const p = new Float64Array(p0);
+
+  // Pre-compute doping
+  const Nd = new Float64Array(N);
+  const Na = new Float64Array(N);
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      const idx = meshIndex(i, j, nx);
+      const dop = getDoping(region[idx] as RegionType, params, isNMOS, z[j]);
+      Nd[idx] = dop.Nd;
+      Na[idx] = dop.Na;
+    }
+  }
+
+  let converged = false;
+  let iter = 0;
+
+  for (iter = 0; iter < opts.maxIter; iter++) {
+    // Solve electron continuity (async with optional GPU)
+    const { A: An, b: bn } = buildElectronMatrix(mesh, psi, n, p, Nd, Na, params, isNMOS, T);
+    const nResult = await solve(An, bn, n, { maxIter: 200, tolerance: 1e-8, useGPU });
+
+    // Solve hole continuity (async with optional GPU)
+    const { A: Ap, b: bp } = buildHoleMatrix(mesh, psi, n, p, Nd, Na, params, isNMOS, T);
+    const pResult = await solve(Ap, bp, p, { maxIter: 200, tolerance: 1e-8, useGPU });
+
+    // Update with damping
+    let maxChange = 0;
+    for (let i = 0; i < N; i++) {
+      if (!isInSilicon(region[i] as RegionType)) continue;
+
+      const dn = nResult.x[i] - n[i];
+      const dp = pResult.x[i] - p[i];
+
+      maxChange = Math.max(maxChange, Math.abs(dn) / Math.max(n[i], 1e10));
+      maxChange = Math.max(maxChange, Math.abs(dp) / Math.max(p[i], 1e10));
+
+      n[i] = Math.max(1e4, n[i] + opts.dampingFactor * dn);
+      p[i] = Math.max(1e4, p[i] + opts.dampingFactor * dp);
+    }
+
+    if (maxChange < opts.tolerance) {
+      converged = true;
+      break;
+    }
+  }
+
+  // Compute current densities (placeholder)
   const Jn_x = new Float64Array(N);
   const Jn_z = new Float64Array(N);
   const Jp_x = new Float64Array(N);

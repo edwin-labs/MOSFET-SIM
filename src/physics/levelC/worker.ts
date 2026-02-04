@@ -3,11 +3,15 @@
  *
  * Runs the computationally intensive Gummel iteration
  * in a background thread to keep the UI responsive.
+ * Supports WebGPU acceleration when available in worker context.
  */
 
 import { LevelCEngine, GummelProgress, toNumericalResult2D } from './gummel';
 import type { DeviceParams, DeviceType } from '../../types/device';
 import type { NumericalResult2D } from '../../types/simulation';
+
+// Check if WebGPU is available in this worker context
+const isWebGPUAvailable = typeof navigator !== 'undefined' && 'gpu' in navigator;
 
 // Worker message types
 export type WorkerMessageType =
@@ -17,7 +21,8 @@ export type WorkerMessageType =
   | 'progress'
   | 'result'
   | 'error'
-  | 'point';
+  | 'point'
+  | 'gpuStatus';
 
 export interface WorkerMessage {
   type: WorkerMessageType;
@@ -30,6 +35,7 @@ export interface SolveRequest {
   deviceType: DeviceType;
   bias: { Vgs: number; Vds: number; Vbs: number };
   temperature: number;
+  useGPU?: boolean;
 }
 
 export interface SweepRequest {
@@ -39,6 +45,7 @@ export interface SweepRequest {
   fixedV: number;
   sweepRange: { start: number; end: number; points: number };
   temperature: number;
+  useGPU?: boolean;
 }
 
 export interface SolveResult {
@@ -90,6 +97,15 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       handleCancel();
       break;
 
+    case 'gpuStatus':
+      // Report GPU availability in worker
+      self.postMessage({
+        type: 'gpuStatus',
+        id,
+        payload: { available: isWebGPUAvailable },
+      });
+      break;
+
     default:
       postError(id, `Unknown message type: ${type}`);
   }
@@ -106,26 +122,51 @@ async function handleSolve(id: string, request: SolveRequest): Promise<void> {
     engine = new LevelCEngine();
   }
 
+  // Enable GPU if requested and available
+  const useGPU = Boolean(request.useGPU) && isWebGPUAvailable;
+  engine.setUseGPU(useGPU);
+
   try {
-    const result = engine.solve(
-      request.params,
-      request.deviceType,
-      request.bias,
-      request.temperature,
-      {
-        maxIter: 50,
-        tolerance: 1e-5,
-        progressCallback: (progress: GummelProgress) => {
-          if (cancelled) return;
-          postProgress(id, {
-            iteration: progress.iteration,
-            maxIter: progress.maxIter,
-            residual: progress.residual,
-            phase: progress.phase,
-          });
-        },
-      }
-    );
+    // Use async version when GPU is enabled (GPU ops are async)
+    const result = useGPU
+      ? await engine.solveAsync(
+          request.params,
+          request.deviceType,
+          request.bias,
+          request.temperature,
+          {
+            maxIter: 50,
+            tolerance: 1e-5,
+            progressCallback: (progress: GummelProgress) => {
+              if (cancelled) return;
+              postProgress(id, {
+                iteration: progress.iteration,
+                maxIter: progress.maxIter,
+                residual: progress.residual,
+                phase: progress.phase,
+              });
+            },
+          }
+        )
+      : engine.solve(
+          request.params,
+          request.deviceType,
+          request.bias,
+          request.temperature,
+          {
+            maxIter: 50,
+            tolerance: 1e-5,
+            progressCallback: (progress: GummelProgress) => {
+              if (cancelled) return;
+              postProgress(id, {
+                iteration: progress.iteration,
+                maxIter: progress.maxIter,
+                residual: progress.residual,
+                phase: progress.phase,
+              });
+            },
+          }
+        );
 
     if (cancelled) return;
 
@@ -157,23 +198,45 @@ async function handleSweep(id: string, request: SweepRequest): Promise<void> {
   // Reset engine for fresh sweep
   engine.reset();
 
+  // Enable GPU if requested and available
+  const useGPU = Boolean(request.useGPU) && isWebGPUAvailable;
+  engine.setUseGPU(useGPU);
+
   try {
-    const result = engine.sweepIV(
-      request.params,
-      request.deviceType,
-      request.sweepType,
-      request.fixedV,
-      request.sweepRange,
-      request.temperature,
-      {
-        maxIter: 30,
-        tolerance: 1e-4,
-      },
-      (index: number, total: number, V: number, Id: number) => {
-        if (cancelled) return;
-        postPoint(id, { index, total, V, Id });
-      }
-    );
+    // Use async version when GPU is enabled
+    const result = useGPU
+      ? await engine.sweepIVAsync(
+          request.params,
+          request.deviceType,
+          request.sweepType,
+          request.fixedV,
+          request.sweepRange,
+          request.temperature,
+          {
+            maxIter: 30,
+            tolerance: 1e-4,
+          },
+          (index: number, total: number, V: number, Id: number) => {
+            if (cancelled) return;
+            postPoint(id, { index, total, V, Id });
+          }
+        )
+      : engine.sweepIV(
+          request.params,
+          request.deviceType,
+          request.sweepType,
+          request.fixedV,
+          request.sweepRange,
+          request.temperature,
+          {
+            maxIter: 30,
+            tolerance: 1e-4,
+          },
+          (index: number, total: number, V: number, Id: number) => {
+            if (cancelled) return;
+            postPoint(id, { index, total, V, Id });
+          }
+        );
 
     if (cancelled) return;
 
