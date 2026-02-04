@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { parseScientific, formatForInput } from '../../utils/format';
 import styles from './ParamSlider.module.css';
 
@@ -98,10 +100,26 @@ export function ParamSlider({
 
   const isOutOfRange = value < min || value > max;
 
+  // Render LaTeX label
+  const renderedLabel = useMemo(() => {
+    try {
+      return katex.renderToString(label, {
+        throwOnError: false,
+        displayMode: false,
+        output: 'html',
+      });
+    } catch {
+      return label;
+    }
+  }, [label]);
+
   return (
     <div className={styles.container} title={tooltip}>
       <div className={styles.header}>
-        <label className={styles.label}>{label}</label>
+        <label
+          className={styles.label}
+          dangerouslySetInnerHTML={{ __html: renderedLabel }}
+        />
         <div className={styles.inputWrapper}>
           <input
             type="text"

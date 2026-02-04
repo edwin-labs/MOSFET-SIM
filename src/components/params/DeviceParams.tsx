@@ -18,7 +18,7 @@ export function DeviceParams() {
     <>
       <ParamSection title="Gate Stack" defaultOpen={true}>
         <ParamSlider
-          label="t_ox"
+          label="t_{ox}"
           value={deviceParams.gate.tox}
           min={0.5}
           max={10}
@@ -28,7 +28,7 @@ export function DeviceParams() {
           onChange={(v) => update('gate', 'tox', v)}
         />
         <ParamSlider
-          label="L_eff"
+          label="L_{eff}"
           value={deviceParams.gate.length}
           min={20}
           max={500}
@@ -38,7 +38,7 @@ export function DeviceParams() {
           onChange={(v) => update('gate', 'length', v)}
         />
         <ParamSlider
-          label="Work Fn"
+          label="\\Phi_M"
           value={deviceParams.gate.workFunction}
           min={4.0}
           max={5.5}
@@ -51,11 +51,11 @@ export function DeviceParams() {
 
       <ParamSection title="Channel" defaultOpen={true}>
         <ParamSlider
-          label="N_ch"
+          label="N_{ch}"
           value={deviceParams.channel.doping}
           min={1e15}
           max={1e19}
-          unit="cm^-3"
+          unit="cm⁻³"
           tooltip="Channel doping concentration"
           logScale={true}
           onChange={(v) => update('channel', 'doping', v)}
@@ -64,11 +64,11 @@ export function DeviceParams() {
 
       <ParamSection title="Source/Drain" defaultOpen={true}>
         <ParamSlider
-          label="N_SD"
+          label="N_{SD}"
           value={deviceParams.sourceDrain.doping}
           min={1e18}
           max={1e21}
-          unit="cm^-3"
+          unit="cm⁻³"
           tooltip="S/D doping concentration"
           logScale={true}
           onChange={(v) => update('sourceDrain', 'doping', v)}
@@ -84,17 +84,17 @@ export function DeviceParams() {
           onChange={(v) => update('sourceDrain', 'junctionDepth', v)}
         />
         <ParamSlider
-          label="N_LDD"
+          label="N_{LDD}"
           value={deviceParams.sourceDrain.lddDoping}
           min={1e17}
           max={1e20}
-          unit="cm^-3"
+          unit="cm⁻³"
           tooltip="LDD doping concentration"
           logScale={true}
           onChange={(v) => update('sourceDrain', 'lddDoping', v)}
         />
         <ParamSlider
-          label="L_LDD"
+          label="L_{LDD}"
           value={deviceParams.sourceDrain.lddLength}
           min={5}
           max={50}
@@ -107,11 +107,11 @@ export function DeviceParams() {
 
       <ParamSection title="Substrate" defaultOpen={true}>
         <ParamSlider
-          label="N_sub"
+          label="N_{sub}"
           value={deviceParams.substrate.doping}
           min={1e14}
           max={1e18}
-          unit="cm^-3"
+          unit="cm⁻³"
           tooltip="Substrate doping concentration"
           logScale={true}
           onChange={(v) => update('substrate', 'doping', v)}
@@ -130,7 +130,7 @@ export function DeviceParams() {
           onChange={(v) => update('geometry', 'width', v)}
         />
         <ParamSlider
-          label="Overlap"
+          label="L_{ov}"
           value={deviceParams.geometry.overlapLength}
           min={0}
           max={20}
@@ -147,16 +147,16 @@ export function DeviceParams() {
           value={deviceParams.advanced.fixedCharge}
           min={-1e12}
           max={1e12}
-          unit="cm^-2"
+          unit="cm⁻²"
           tooltip="Fixed oxide charge"
           onChange={(v) => update('advanced', 'fixedCharge', v)}
         />
         <ParamSlider
-          label="D_it"
+          label="D_{it}"
           value={deviceParams.advanced.interfaceTrapDensity}
           min={0}
           max={1e13}
-          unit="cm^-2 eV^-1"
+          unit="cm⁻²eV⁻¹"
           tooltip="Interface trap density"
           logScale={true}
           onChange={(v) => update('advanced', 'interfaceTrapDensity', v)}
@@ -167,7 +167,7 @@ export function DeviceParams() {
           min={0}
           max={1000}
           step={1}
-          unit="Ohm"
+          unit="Ω"
           tooltip="Source series resistance"
           onChange={(v) => update('advanced', 'seriesResistanceS', v)}
         />
@@ -177,7 +177,7 @@ export function DeviceParams() {
           min={0}
           max={1000}
           step={1}
-          unit="Ohm"
+          unit="Ω"
           tooltip="Drain series resistance"
           onChange={(v) => update('advanced', 'seriesResistanceD', v)}
         />

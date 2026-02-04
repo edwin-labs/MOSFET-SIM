@@ -12,7 +12,7 @@ export function ProcessParams() {
           Material: {processParams.gateStack.gateMaterial}
         </div>
         <ParamSlider
-          label="t_ox"
+          label="t_{ox}"
           value={processParams.gateStack.oxideThickness}
           min={0.5}
           max={10}
@@ -35,17 +35,17 @@ export function ProcessParams() {
 
       <ParamSection title="Well Implant" defaultOpen={false} storageKey="proc-well">
         <ParamSlider
-          label="N_well"
+          label="N_{well}"
           value={processParams.well.doping}
           min={1e14}
           max={1e18}
-          unit="cm^-3"
+          unit="cm⁻³"
           tooltip="Well doping concentration"
           logScale={true}
           onChange={() => {}}
         />
         <ParamSlider
-          label="Depth"
+          label="d_{well}"
           value={processParams.well.depth}
           min={100}
           max={1000}
@@ -61,17 +61,17 @@ export function ProcessParams() {
           Species: {processParams.vtAdjust.species}
         </div>
         <ParamSlider
-          label="Dose"
+          label="\\phi"
           value={processParams.vtAdjust.dose}
           min={1e11}
           max={1e14}
-          unit="cm^-2"
+          unit="cm⁻²"
           tooltip="Implant dose"
           logScale={true}
           onChange={() => {}}
         />
         <ParamSlider
-          label="Energy"
+          label="E"
           value={processParams.vtAdjust.energy}
           min={5}
           max={100}
@@ -89,21 +89,21 @@ export function ProcessParams() {
         {processParams.halo.enabled && (
           <>
             <ParamSlider
-              label="Dose"
+              label="\\phi_{halo}"
               value={processParams.halo.dose}
               min={1e12}
               max={1e15}
-              unit="cm^-2"
+              unit="cm⁻²"
               logScale={true}
               onChange={() => {}}
             />
             <ParamSlider
-              label="Angle"
+              label="\\theta"
               value={processParams.halo.tiltAngle}
               min={0}
               max={60}
               step={1}
-              unit="deg"
+              unit="°"
               onChange={() => {}}
             />
           </>
@@ -115,16 +115,16 @@ export function ProcessParams() {
           Species: {processParams.sdMain.species}
         </div>
         <ParamSlider
-          label="Dose"
+          label="\\phi_{SD}"
           value={processParams.sdMain.dose}
           min={1e14}
           max={1e16}
-          unit="cm^-2"
+          unit="cm⁻²"
           logScale={true}
           onChange={() => {}}
         />
         <ParamSlider
-          label="Energy"
+          label="E_{SD}"
           value={processParams.sdMain.energy}
           min={5}
           max={100}
@@ -139,11 +139,11 @@ export function ProcessParams() {
           Species: {processParams.ldd.species}
         </div>
         <ParamSlider
-          label="Dose"
+          label="\\phi_{LDD}"
           value={processParams.ldd.dose}
           min={1e12}
           max={1e15}
-          unit="cm^-2"
+          unit="cm⁻²"
           logScale={true}
           onChange={() => {}}
         />
@@ -151,7 +151,7 @@ export function ProcessParams() {
 
       <ParamSection title="Spacer & Anneal" defaultOpen={false} storageKey="proc-anneal">
         <ParamSlider
-          label="Spacer W"
+          label="W_{sp}"
           value={processParams.spacer.width}
           min={5}
           max={50}
@@ -160,7 +160,7 @@ export function ProcessParams() {
           onChange={() => {}}
         />
         <div style={{ padding: '8px 0', fontSize: '11px', color: 'var(--text-secondary)' }}>
-          Anneal: {processParams.anneal.type} @ {processParams.anneal.temperature}C
+          Anneal: {processParams.anneal.type} @ {processParams.anneal.temperature}°C
         </div>
       </ParamSection>
 

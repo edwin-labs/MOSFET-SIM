@@ -9,7 +9,7 @@ export function BiasControls() {
   return (
     <ParamSection title="Bias Conditions" defaultOpen={true}>
       <ParamSlider
-        label="V_GS"
+        label="V_{GS}"
         value={bias.vgs}
         min={isNMOS ? -0.5 : -2.0}
         max={isNMOS ? 2.0 : 0.5}
@@ -19,7 +19,7 @@ export function BiasControls() {
         onChange={(v) => updateBias('vgs', v)}
       />
       <ParamSlider
-        label="V_DS"
+        label="V_{DS}"
         value={bias.vds}
         min={isNMOS ? 0 : -2.0}
         max={isNMOS ? 2.0 : 0}
@@ -29,7 +29,7 @@ export function BiasControls() {
         onChange={(v) => updateBias('vds', v)}
       />
       <ParamSlider
-        label="V_BS"
+        label="V_{BS}"
         value={bias.vbs}
         min={isNMOS ? -2.0 : 0}
         max={isNMOS ? 0.5 : 2.0}

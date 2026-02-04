@@ -49,7 +49,11 @@
 
 .operatingPoint .label {
   color: var(--text-muted);
-  margin-right: 4px;
+  margin-right: 2px;
+}
+
+.operatingPoint .label .katex {
+  font-size: 0.9em;
 }
 
 .operatingPoint .value {

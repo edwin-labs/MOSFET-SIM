@@ -1,6 +1,15 @@
 import Plot from 'react-plotly.js';
+import katex from 'katex';
 import { useSimulationStore, useViewStore, useDeviceStore, useComparisonStore } from '../../store';
 import styles from './Plots.module.css';
+
+const renderLatex = (tex: string) => {
+  try {
+    return katex.renderToString(tex, { throwOnError: false, displayMode: false });
+  } catch {
+    return tex;
+  }
+};
 
 export function IVPlot() {
   const { iv, operatingPoint } = useSimulationStore();
@@ -134,19 +143,19 @@ export function IVPlot() {
       {operatingPoint && (
         <div className={styles.operatingPoint}>
           <span>
-            <span className={styles.label}>Vgs:</span>
+            <span className={styles.label} dangerouslySetInnerHTML={{ __html: renderLatex('V_{GS}') }} />
             <span className={styles.value}>{operatingPoint.vgs.toFixed(2)} V</span>
           </span>
           <span>
-            <span className={styles.label}>Vds:</span>
+            <span className={styles.label} dangerouslySetInnerHTML={{ __html: renderLatex('V_{DS}') }} />
             <span className={styles.value}>{operatingPoint.vds.toFixed(2)} V</span>
           </span>
           <span>
-            <span className={styles.label}>Vbs:</span>
+            <span className={styles.label} dangerouslySetInnerHTML={{ __html: renderLatex('V_{BS}') }} />
             <span className={styles.value}>{operatingPoint.vbs.toFixed(2)} V</span>
           </span>
           <span>
-            <span className={styles.label}>Id:</span>
+            <span className={styles.label} dangerouslySetInnerHTML={{ __html: renderLatex('I_D') }} />
             <span className={styles.highlight}>{formatCurrent(operatingPoint.id)}</span>
           </span>
         </div>
