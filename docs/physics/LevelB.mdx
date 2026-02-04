@@ -6,80 +6,80 @@ Level B extends the analytical model with **short-channel effects** and **semi-e
 
 ### 1. Velocity Saturation
 
-At high lateral electric fields, carrier velocity saturates at $v_{sat}$:
+At high lateral electric fields, carrier velocity saturates at v_sat:
 
-$$
-\mu_{eff} = \frac{\mu_0}{1 + \mu_0 E / v_{sat}}
-$$
+```
+μ_eff = μ_0 / (1 + μ_0 × E / v_sat)
+```
 
 This modifies the saturation voltage:
 
-$$
-V_{dsat} = \frac{V_{ov} \cdot E_{sat} \cdot L}{E_{sat} \cdot L + V_{ov}}
-$$
+```
+V_dsat = (V_ov × E_sat × L) / (E_sat × L + V_ov)
+```
 
-Where $E_{sat} = 2 v_{sat} / \mu$ is the saturation field.
+Where E_sat = 2 × v_sat / μ is the saturation field.
 
 ### 2. DIBL (Drain-Induced Barrier Lowering)
 
 The drain voltage reduces the source-channel barrier, lowering threshold:
 
-$$
-\Delta V_{th} = -\eta \cdot V_{DS}
-$$
+```
+ΔV_th = -η × V_DS
+```
 
-Where $\eta$ is the DIBL coefficient (typically 20-200 mV/V for short channels).
+Where η is the DIBL coefficient (typically 20-200 mV/V for short channels).
 
 ### 3. Channel Length Modulation (CLM)
 
-In saturation, the channel pinch-off point moves toward the source as $V_{DS}$ increases:
+In saturation, the channel pinch-off point moves toward the source as V_DS increases:
 
-$$
-I_D = I_{D,sat} \cdot (1 + \lambda V_{DS})
-$$
+```
+I_D = I_D,sat × (1 + λ × V_DS)
+```
 
-Where $\lambda \propto 1/L$ is the CLM parameter.
+Where λ ∝ 1/L is the CLM parameter.
 
 ### 4. Body Effect
 
 Back-bias affects threshold voltage:
 
-$$
-V_{th}(V_{SB}) = V_{th0} + \gamma \left( \sqrt{2\phi_F + V_{SB}} - \sqrt{2\phi_F} \right)
-$$
+```
+V_th(V_SB) = V_th0 + γ × (√(2φ_F + V_SB) - √(2φ_F))
+```
 
 ### 5. Mobility Degradation
 
 Vertical field from gate oxide degrades mobility:
 
-$$
-\mu_{eff} = \frac{\mu_0}{1 + \theta (V_{GS} - V_{th})}
-$$
+```
+μ_eff = μ_0 / (1 + θ × (V_GS - V_th))
+```
 
-Where $\theta$ is the mobility degradation coefficient (~0.1 V⁻¹).
+Where θ is the mobility degradation coefficient (~0.1 V⁻¹).
 
 ### 6. Non-ideal Subthreshold Swing
 
 Interface traps and depletion capacitance increase SS:
 
-$$
-SS = \frac{kT}{q} \ln(10) \left(1 + \frac{C_{dep}}{C_{ox}} + \frac{C_{it}}{C_{ox}}\right)
-$$
+```
+SS = (kT/q) × ln(10) × (1 + C_dep/C_ox + C_it/C_ox)
+```
 
-## Short-Channel $V_{th}$ Roll-off
+## Short-Channel V_th Roll-off
 
 Charge sharing between source/drain reduces effective channel charge:
 
-$$
-\Delta V_{th,sc} \approx -\frac{x_j + x_d}{2L} \cdot 2\phi_F
-$$
+```
+ΔV_th,sc ≈ -(x_j + x_d)/(2L) × 2φ_F
+```
 
 ## Additional Metrics
 
 Level B extracts additional metrics:
-- **DIBL**: Measured as $(V_{th}|_{low V_{ds}} - V_{th}|_{high V_{ds}}) / \Delta V_{DS}$
-- **$g_{m,max}$**: Peak transconductance
-- **$V_{dsat}$**: Saturation voltage with velocity saturation
+- **DIBL**: Measured as (V_th@low_Vds - V_th@high_Vds) / ΔV_DS
+- **gm_max**: Peak transconductance
+- **V_dsat**: Saturation voltage with velocity saturation
 
 ## When to Use
 
