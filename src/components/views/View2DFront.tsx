@@ -139,20 +139,17 @@ export function View2DFront() {
       const zMin = zArr[0];
       const zMax = zArr[zArr.length - 1];
 
-      const imgWidth = Math.ceil((xMax - xMin) * scale);
-      const imgHeight = Math.ceil((zMax - zMin) * scale);
-      const imgData = ctx.createImageData(imgWidth, imgHeight);
-      const data = imgData.data;
+      // Create offscreen canvas for the doping image
+      const offscreen = document.createElement('canvas');
+      offscreen.width = doping2d.nx;
+      offscreen.height = doping2d.nz;
+      const offCtx = offscreen.getContext('2d');
+      if (offCtx) {
+        const imgData = offCtx.createImageData(doping2d.nx, doping2d.nz);
+        const data = imgData.data;
 
-      for (let py = 0; py < imgHeight; py++) {
-        for (let px = 0; px < imgWidth; px++) {
-          const xNm = xMin + (px / scale);
-          const zNm = zMin + (py / scale);
-
-          const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (doping2d.nx - 1));
-          const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (doping2d.nz - 1));
-
-          if (xi >= 0 && xi < doping2d.nx && zi >= 0 && zi < doping2d.nz) {
+        for (let zi = 0; zi < doping2d.nz; zi++) {
+          for (let xi = 0; xi < doping2d.nx; xi++) {
             const idx = zi * doping2d.nx + xi;
             let r: number, g: number, b: number;
 
@@ -162,16 +159,27 @@ export function View2DFront() {
               [r, g, b] = netTypeToColor(doping2d.Nnet[idx]);
             }
 
-            const pidx = (py * imgWidth + px) * 4;
+            const pidx = (zi * doping2d.nx + xi) * 4;
             data[pidx] = r;
             data[pidx + 1] = g;
             data[pidx + 2] = b;
             data[pidx + 3] = 180;
           }
         }
-      }
 
-      ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
+        offCtx.putImageData(imgData, 0, 0);
+
+        // Draw the offscreen canvas scaled to fit the device region
+        const drawWidth = (xMax - xMin) * scale;
+        const drawHeight = (zMax - zMin) * scale;
+        ctx.drawImage(
+          offscreen,
+          toX(xMin),
+          toY(zMax),  // Top of the doping region
+          drawWidth,
+          drawHeight
+        );
+      }
 
       drawColorbar(
         ctx,
@@ -201,33 +209,35 @@ export function View2DFront() {
         if (psi[i] > maxPsi) maxPsi = psi[i];
       }
 
-      const imgWidth = Math.ceil((xMax - xMin) * scale);
-      const imgHeight = Math.ceil((zMax - zMin) * scale);
-      const imgData = ctx.createImageData(imgWidth, imgHeight);
-      const data = imgData.data;
+      // Create offscreen canvas
+      const offscreen = document.createElement('canvas');
+      offscreen.width = nx;
+      offscreen.height = nz;
+      const offCtx = offscreen.getContext('2d');
+      if (offCtx) {
+        const imgData = offCtx.createImageData(nx, nz);
+        const data = imgData.data;
 
-      for (let py = 0; py < imgHeight; py++) {
-        for (let px = 0; px < imgWidth; px++) {
-          const xNm = xMin + (px / scale);
-          const zNm = zMin + (py / scale);
-
-          const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (nx - 1));
-          const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (nz - 1));
-
-          if (xi >= 0 && xi < nx && zi >= 0 && zi < nz) {
+        for (let zi = 0; zi < nz; zi++) {
+          for (let xi = 0; xi < nx; xi++) {
             const idx = zi * nx + xi;
             const [r, g, b] = potentialToColor(psi[idx], minPsi, maxPsi);
 
-            const pidx = (py * imgWidth + px) * 4;
+            const pidx = (zi * nx + xi) * 4;
             data[pidx] = r;
             data[pidx + 1] = g;
             data[pidx + 2] = b;
             data[pidx + 3] = 180;
           }
         }
+
+        offCtx.putImageData(imgData, 0, 0);
+
+        const drawWidth = (xMax - xMin) * scale;
+        const drawHeight = (zMax - zMin) * scale;
+        ctx.drawImage(offscreen, toX(xMin), toY(zMax), drawWidth, drawHeight);
       }
 
-      ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
       drawColorbar(ctx, width - 30, 40, 12, 80, `${minPsi.toFixed(1)}V`, `${maxPsi.toFixed(1)}V`, 'Potential', false);
     }
 
@@ -246,34 +256,35 @@ export function View2DFront() {
         if (E > maxE) maxE = E;
       }
 
-      const imgWidth = Math.ceil((xMax - xMin) * scale);
-      const imgHeight = Math.ceil((zMax - zMin) * scale);
-      const imgData = ctx.createImageData(imgWidth, imgHeight);
-      const data = imgData.data;
+      // Create offscreen canvas
+      const offscreen = document.createElement('canvas');
+      offscreen.width = nx;
+      offscreen.height = nz;
+      const offCtx = offscreen.getContext('2d');
+      if (offCtx) {
+        const imgData = offCtx.createImageData(nx, nz);
+        const data = imgData.data;
 
-      for (let py = 0; py < imgHeight; py++) {
-        for (let px = 0; px < imgWidth; px++) {
-          const xNm = xMin + (px / scale);
-          const zNm = zMin + (py / scale);
-
-          const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (nx - 1));
-          const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (nz - 1));
-
-          if (xi >= 0 && xi < nx && zi >= 0 && zi < nz) {
+        for (let zi = 0; zi < nz; zi++) {
+          for (let xi = 0; xi < nx; xi++) {
             const idx = zi * nx + xi;
             const E = Math.sqrt(Ex[idx] * Ex[idx] + Ez[idx] * Ez[idx]);
             const [r, g, b] = efieldToColor(E, maxE);
 
-            const pidx = (py * imgWidth + px) * 4;
+            const pidx = (zi * nx + xi) * 4;
             data[pidx] = r;
             data[pidx + 1] = g;
             data[pidx + 2] = b;
             data[pidx + 3] = 180;
           }
         }
-      }
 
-      ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
+        offCtx.putImageData(imgData, 0, 0);
+
+        const drawWidth = (xMax - xMin) * scale;
+        const drawHeight = (zMax - zMin) * scale;
+        ctx.drawImage(offscreen, toX(xMin), toY(zMax), drawWidth, drawHeight);
+      }
       drawColorbar(ctx, width - 30, 40, 12, 80, '0', `${(maxE / 1e5).toFixed(1)}MV/cm`, 'E-Field', false);
     }
 
