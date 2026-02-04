@@ -1,0 +1,27 @@
+/**
+ * Custom styles for MOSFET Simulator documentation
+ */
+
+/* Center-align MathJax equations */
+mjx-container {
+  display: block !important;
+  text-align: center;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+
+/* Inline math should remain inline */
+mjx-container[jax="CHTML"][display="false"],
+mjx-container[display="false"] {
+  display: inline !important;
+  text-align: inherit;
+  margin: 0;
+}
+
+/* Math block styling */
+.math-display,
+.MathJax_Display {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
