@@ -1,0 +1,64 @@
+{/* GPU Benchmark Documentation */}
+
+import { Meta, Canvas } from '@storybook/blocks';
+import { GPUBenchmark } from './GPUBenchmark';
+
+<Meta title="Debug/GPU Benchmark" />
+
+# GPU Benchmark
+
+Tests WebGPU compute shader performance for sparse matrix solving.
+
+## Features
+
+- **GPU Detection**: Checks WebGPU availability and adapter info
+- **BiCGSTAB Solver**: Compares CPU vs GPU BiCGSTAB implementations
+- **Configurable Matrix Size**: Adjust problem size for benchmarking
+
+## Live Demo
+
+<GPUBenchmark />
+
+## Technical Details
+
+### Matrix Generation
+
+The benchmark generates a 2D Laplacian matrix using a 5-point stencil:
+
+```
+     -1
+  -1  4  -1
+     -1
+```
+
+For a grid of size N, the matrix dimension is N^2 with approximately 5N^2 non-zero elements.
+
+### GPU Implementation
+
+The GPU solver uses:
+- **CSR (Compressed Sparse Row)** format for sparse matrix storage
+- **WebGPU compute shaders** for:
+  - Sparse matrix-vector multiplication (SpMV)
+  - Dot products with parallel reduction
+  - Vector operations (axpy, copy)
+- **Jacobi preconditioner** for faster convergence
+
+### Performance Notes
+
+1. First GPU run includes shader compilation overhead
+2. GPU speedup increases with larger matrices
+3. For small matrices (< 1000 unknowns), CPU may be faster due to GPU overhead
+4. Float32 precision on GPU vs Float64 on CPU
+
+### Usage in Code
+
+```typescript
+import { solve } from '@/physics/levelC/sparseSolver';
+
+// Enable GPU acceleration
+const result = await solve(A, b, x0, {
+  maxIter: 1000,
+  tolerance: 1e-8,
+  useGPU: true,  // Automatically falls back to CPU if unavailable
+});
+```

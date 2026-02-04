@@ -5,7 +5,10 @@
  * - CSR (Compressed Sparse Row) format
  * - BiCGSTAB algorithm with Jacobi preconditioner
  * - SOR (Successive Over-Relaxation) as alternative
+ * - Optional GPU acceleration via WebGPU
  */
+
+import { hybridBiCGSTAB } from '../gpu';
 
 /**
  * CSR (Compressed Sparse Row) Matrix Format
@@ -192,6 +195,7 @@ export interface SolverOptions {
   maxIter: number;
   tolerance: number;
   verbose: boolean;
+  useGPU?: boolean;  // Enable GPU acceleration when available
 }
 
 const DEFAULT_SOLVER_OPTIONS: SolverOptions = {
@@ -336,6 +340,37 @@ export function biCGSTAB(
     iterations: iter,
     residual,
   };
+}
+
+/**
+ * Solve linear system with optional GPU acceleration
+ *
+ * Automatically chooses GPU or CPU based on options and availability
+ */
+export async function solve(
+  A: CSRMatrix,
+  b: Float64Array,
+  x0: Float64Array | null = null,
+  options: Partial<SolverOptions> = {}
+): Promise<SolverResult> {
+  const opts = { ...DEFAULT_SOLVER_OPTIONS, ...options };
+
+  if (opts.useGPU) {
+    try {
+      return await hybridBiCGSTAB(A, b, x0, {
+        maxIter: opts.maxIter,
+        tolerance: opts.tolerance,
+        verbose: opts.verbose,
+      });
+    } catch {
+      // Fall back to CPU on any error
+      if (opts.verbose) {
+        console.warn('GPU solver failed, using CPU fallback');
+      }
+    }
+  }
+
+  return biCGSTAB(A, b, x0, options);
 }
 
 /**
