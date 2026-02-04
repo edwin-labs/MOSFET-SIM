@@ -232,7 +232,7 @@ export function View3D() {
     const scale = 1; // 1 unit = 1 nm in visualization
     const L = deviceParams.gate.length * scale;
     const W = Math.min(deviceParams.geometry.width * scale, 200); // Cap width for viz
-    const tox = deviceParams.gate.tox * scale * 10; // Exaggerate oxide for visibility
+    const tox = deviceParams.gate.tox * scale * 3; // Slightly exaggerate oxide for visibility
     const xj = deviceParams.sourceDrain.junctionDepth * scale;
     const lddLen = deviceParams.sourceDrain.lddLength * scale;
     const subDepth = 100 * scale;

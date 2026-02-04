@@ -170,12 +170,13 @@ export function View2DFront() {
         offCtx.putImageData(imgData, 0, 0);
 
         // Draw the offscreen canvas scaled to fit the device region
+        // z=0 is surface, z increases into substrate, so top of image is at y=0
         const drawWidth = (xMax - xMin) * scale;
         const drawHeight = (zMax - zMin) * scale;
         ctx.drawImage(
           offscreen,
           toX(xMin),
-          toY(zMax),  // Top of the doping region
+          toY(0),  // Surface level (z=0 maps to y=0)
           drawWidth,
           drawHeight
         );
@@ -235,7 +236,7 @@ export function View2DFront() {
 
         const drawWidth = (xMax - xMin) * scale;
         const drawHeight = (zMax - zMin) * scale;
-        ctx.drawImage(offscreen, toX(xMin), toY(zMax), drawWidth, drawHeight);
+        ctx.drawImage(offscreen, toX(xMin), toY(0), drawWidth, drawHeight);
       }
 
       drawColorbar(ctx, width - 30, 40, 12, 80, `${minPsi.toFixed(1)}V`, `${maxPsi.toFixed(1)}V`, 'Potential', false);
@@ -283,7 +284,7 @@ export function View2DFront() {
 
         const drawWidth = (xMax - xMin) * scale;
         const drawHeight = (zMax - zMin) * scale;
-        ctx.drawImage(offscreen, toX(xMin), toY(zMax), drawWidth, drawHeight);
+        ctx.drawImage(offscreen, toX(xMin), toY(0), drawWidth, drawHeight);
       }
       drawColorbar(ctx, width - 30, 40, 12, 80, '0', `${(maxE / 1e5).toFixed(1)}MV/cm`, 'E-Field', false);
     }

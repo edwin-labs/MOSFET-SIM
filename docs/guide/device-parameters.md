@@ -11,7 +11,7 @@ This guide explains all the device parameters available in the simulator.
 
 ### Channel Length ($L_{eff}$)
 - **Range**: 20 - 500 nm
-- **Default**: 45 nm
+- **Default**: 90 nm
 - **Effect**: Shorter channels enable faster switching but suffer from short-channel effects
 
 ### Work Function
@@ -34,7 +34,7 @@ This guide explains all the device parameters available in the simulator.
 
 ### Junction Depth ($x_j$)
 - **Range**: 10 - 200 nm
-- **Default**: 30 nm
+- **Default**: 50 nm
 - **Effect**: Shallower junctions reduce short-channel effects
 
 ### LDD Doping ($N_{LDD}$)
@@ -55,7 +55,8 @@ This guide explains all the device parameters available in the simulator.
 ## Geometry
 
 ### Channel Width ($W$)
-- **Range**: 100 - 10000 nm
+- **Range**: 50 - 2000 nm
+- **Default**: 360 nm (nMOS), 720 nm (pMOS)
 - **Effect**: Wider channel increases current proportionally
 
 ### Gate-S/D Overlap

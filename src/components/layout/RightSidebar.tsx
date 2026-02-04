@@ -16,6 +16,14 @@ interface FoldableSectionProps {
   children: React.ReactNode;
 }
 
+function ChevronIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+      <path d="M3 2 L7 5 L3 8 Z" />
+    </svg>
+  );
+}
+
 function FoldableSection({ title, storageKey, defaultOpen = false, children }: FoldableSectionProps) {
   const { foldStates, setFoldState } = useViewStore();
   const isOpen = foldStates[storageKey] ?? defaultOpen;
@@ -26,12 +34,11 @@ function FoldableSection({ title, storageKey, defaultOpen = false, children }: F
 
   return (
     <div className={styles.section}>
-      <button
-        className={`${styles.sectionHeader} ${isOpen ? styles.open : ''}`}
-        onClick={toggle}
-      >
+      <button className={styles.sectionHeader} onClick={toggle}>
+        <span className={`${styles.arrow} ${isOpen ? styles.open : ''}`}>
+          <ChevronIcon />
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
-        <span className={styles.chevron}>{isOpen ? '▼' : '▶'}</span>
       </button>
       {isOpen && <div className={styles.sectionContent}>{children}</div>}
     </div>

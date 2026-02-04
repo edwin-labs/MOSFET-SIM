@@ -219,8 +219,10 @@ export async function gpuBiCGSTAB(
 
 ## 4. 구현 우선순위
 
-### Phase 1: 기본 인프라 (1주)
-- [ ] WebGPU 지원 감지 및 fallback
+### Phase 1: 기본 인프라 (1주) ✅ 완료
+- [x] WebGPU 지원 감지 및 fallback
+- [x] Web Worker 기반 비동기 솔버 (`solvePoissonAsync`, `solveContinuityAsync`, `solveGummelAsync`)
+- [x] `useGPU` 플래그를 통한 GPU 모드 활성화 UI
 - [ ] GPU 버퍼 관리 클래스
 - [ ] 기본 compute pipeline 설정
 
@@ -232,7 +234,7 @@ export async function gpuBiCGSTAB(
 
 ### Phase 3: 통합 및 최적화 (1주)
 - [ ] Poisson solver GPU 버전
-- [ ] 자동 CPU/GPU 전환
+- [x] 자동 CPU/GPU 전환 (Worker에서 WebGPU 가용성 체크)
 - [ ] 메모리 풀링 최적화
 
 ### Phase 4: 검증 (1주)
@@ -279,5 +281,17 @@ export async function gpuBiCGSTAB(
 
 ---
 
-*검토일: 2024-02*
+*최초 작성: 2024-02*
+*최종 업데이트: 2025-02*
 *작성: Claude Code*
+
+## 현재 구현 상태
+
+Web Worker 기반 비동기 솔버 인프라가 구현됨:
+- `src/physics/levelC/poisson.ts`: `solvePoissonAsync()`
+- `src/physics/levelC/continuity.ts`: `solveContinuityAsync()`
+- `src/physics/levelC/gummel.ts`: `solveGummelAsync()`, `LevelCEngine.solveAsync()`
+- `src/physics/levelC/worker.ts`: WebGPU 가용성 체크 및 `useGPU` 플래그 처리
+- `src/components/params/NumericalControls.tsx`: GPU 사용 토글 UI
+
+실제 WebGPU compute shader는 미구현 상태. 현재는 CPU fallback으로 동작.

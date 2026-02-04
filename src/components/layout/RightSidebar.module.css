@@ -12,43 +12,43 @@
 
 .sectionHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 4px;
   width: 100%;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  text-align: left;
+  transition: background 0.15s ease;
 }
 
 .sectionHeader:hover {
   background: var(--border-color);
 }
 
-.sectionHeader.open {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
 .sectionTitle {
+  flex: 1;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.sectionHeader.open .sectionTitle {
-  color: var(--accent-color);
-}
-
-.chevron {
-  font-size: 10px;
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   color: var(--text-muted);
   transition: transform 0.2s ease;
 }
 
-.sectionHeader.open .chevron {
-  color: var(--accent-color);
+.arrow.open {
+  transform: rotate(90deg);
 }
 
 .sectionContent {

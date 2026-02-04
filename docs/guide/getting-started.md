@@ -82,8 +82,8 @@ The Tech dropdown provides pre-configured parameters:
 | Node | Gate Length | Vdd | tox |
 |------|-------------|-----|-----|
 | 180nm | 180 nm | 1.8V | 4 nm |
-| 90nm | 90 nm | 1.2V | 2.5 nm |
-| 45nm | 45 nm | 1.0V | 1.4 nm |
+| 90nm | 90 nm | 1.2V | 2 nm |
+| 45nm | 45 nm | 1.0V | 1.5 nm |
 | 28nm | 28 nm | 0.9V | 1.2 nm |
 
 ## Viewing Results
