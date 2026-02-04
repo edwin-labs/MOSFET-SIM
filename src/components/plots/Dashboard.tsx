@@ -4,7 +4,7 @@ import styles from './Dashboard.module.css';
 
 export function Dashboard() {
   const { metrics, calcTime, status } = useSimulationStore();
-  const { deviceType, level } = useDeviceStore();
+  const { deviceType, modelType } = useDeviceStore();
 
   if (!metrics) {
     return (
@@ -71,7 +71,7 @@ export function Dashboard() {
     <div className={styles.dashboard}>
       <div className={styles.header}>
         <span className={styles.info}>
-          Level {level} | {calcTime.toFixed(1)} ms
+          {modelType === 'compact' ? 'Compact' : 'Numerical'} | {calcTime.toFixed(1)} ms
         </span>
       </div>
 

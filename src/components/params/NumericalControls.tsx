@@ -1,7 +1,7 @@
 /**
- * Level C Simulation Controls
+ * Numerical Model Simulation Controls
  *
- * Provides UI for running Level C numerical simulations:
+ * Provides UI for running numerical (TCAD) simulations:
  * - Single point solve
  * - I-V sweep with real-time progress
  * - Cancel button
@@ -10,12 +10,9 @@
 import { useState } from 'react';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useLevelC } from '../../hooks/useLevelC';
-import styles from './LevelCControls.module.css';
+import styles from './NumericalControls.module.css';
 
-/**
- * @deprecated Use NumericalControls instead
- */
-export function LevelCControls() {
+export function NumericalControls() {
   const { modelType } = useDeviceStore();
   const { state, runSinglePoint, runSweep, cancel } = useLevelC();
 
@@ -45,7 +42,7 @@ export function LevelCControls() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <span className={styles.title}>Level C Simulation</span>
+        <span className={styles.title}>Numerical Simulation</span>
         <span className={styles.status}>
           {state.workerState.status === 'running' ? 'Running...' : 'Ready'}
         </span>
@@ -165,8 +162,8 @@ export function LevelCControls() {
       )}
 
       <div className={styles.info}>
-        <p>Level C uses numerical Poisson-DD solver.</p>
-        <p>Mesh: ~100x100, BiCGSTAB linear solver.</p>
+        <p>Uses numerical Poisson + Drift-Diffusion solver.</p>
+        <p>Mesh: ~100x100, Gummel iteration with BiCGSTAB.</p>
         <p>Sweep time: ~30-60s for 25 points.</p>
       </div>
     </div>

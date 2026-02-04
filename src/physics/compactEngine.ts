@@ -1,15 +1,18 @@
 /**
- * Level B Physics Engine - Semi-Empirical MOSFET Model
+ * Unified Compact MOSFET Model
  *
- * Extends Level A with:
+ * Combines analytical and semi-empirical models with toggleable effects:
  * - Velocity Saturation
  * - DIBL (Drain-Induced Barrier Lowering)
- * - Channel Length Modulation (CLM)
+ * - CLM (Channel Length Modulation)
  * - Body Effect
  * - Mobility Degradation (vertical field)
- * - Subthreshold Swing (non-ideal)
+ * - Subthreshold Slope degradation
  * - Short Channel Vth Roll-off
- * - Narrow Width Effect
+ * - Series Resistance
+ *
+ * When all effects are OFF: equivalent to basic Shockley model
+ * When all effects are ON: equivalent to semi-empirical BSIM-lite model
  */
 
 import { Q, EPS0, thermalVoltage, NM_TO_CM } from './constants';
@@ -24,7 +27,7 @@ import {
   OXIDES,
   GATE_WORK_FUNCTIONS,
 } from './materials';
-import type { DeviceType, DeviceParams, BiasConditions } from '../types/device';
+import type { DeviceType, DeviceParams, BiasConditions, CompactModelEffects } from '../types/device';
 import type {
   IVResult,
   CVResult,
@@ -33,7 +36,45 @@ import type {
   SweepCurve,
 } from '../types/simulation';
 
-export class LevelBEngine {
+/** Default effects: all enabled for realistic simulation */
+export const DEFAULT_EFFECTS: CompactModelEffects = {
+  velocitySaturation: true,
+  dibl: true,
+  clm: true,
+  bodyEffect: true,
+  mobilityDegradation: true,
+  subthresholdSlope: true,
+  shortChannel: true,
+  seriesResistance: true,
+};
+
+/** Basic effects: minimal model for educational purposes */
+export const BASIC_EFFECTS: CompactModelEffects = {
+  velocitySaturation: false,
+  dibl: false,
+  clm: false,
+  bodyEffect: true,  // Keep body effect as it's fundamental
+  mobilityDegradation: false,
+  subthresholdSlope: false,
+  shortChannel: false,
+  seriesResistance: false,
+};
+
+export class CompactEngine {
+  private effects: CompactModelEffects;
+
+  constructor(effects: CompactModelEffects = DEFAULT_EFFECTS) {
+    this.effects = effects;
+  }
+
+  setEffects(effects: CompactModelEffects): void {
+    this.effects = effects;
+  }
+
+  getEffects(): CompactModelEffects {
+    return { ...this.effects };
+  }
+
   /**
    * Fermi potential: φ_F = (kT/q) * ln(N_A / n_i)
    */
@@ -52,7 +93,6 @@ export class LevelBEngine {
    */
   oxideCap(epsr_ox: number, tox_nm: number): number {
     const tox_cm = tox_nm * NM_TO_CM;
-    // EPS0 is F/m, multiply by 0.01 to convert to F/cm
     return (EPS0 * epsr_ox * 1e-2) / tox_cm; // F/cm^2
   }
 
@@ -70,9 +110,7 @@ export class LevelBEngine {
     const phi_m = GATE_WORK_FUNCTIONS[gateMaterial as keyof typeof GATE_WORK_FUNCTIONS] || 4.15;
     const Eg = bandgapSi(T);
     const phiF = this.phiF(doping, T, isPType);
-    const phi_s = isPType
-      ? Si.chi + Eg / 2 + phiF
-      : Si.chi + Eg / 2 + phiF;
+    const phi_s = Si.chi + Eg / 2 + phiF;
     const phi_ms = phi_m - phi_s;
     return phi_ms - (Qf * Q) / Cox;
   }
@@ -81,15 +119,14 @@ export class LevelBEngine {
    * Body effect coefficient: γ = sqrt(2*q*ε_Si*N_A) / C_ox
    */
   bodyCoefficient(doping: number, Cox: number): number {
-    const eps_si = EPS0 * Si.eps_r * 1e-2; // F/cm (EPS0 is F/m)
+    const eps_si = EPS0 * Si.eps_r * 1e-2;
     return Math.sqrt(2 * Q * eps_si * doping) / Cox;
   }
 
   /**
-   * Short channel Vth roll-off using charge sharing model
-   * ΔVth ≈ -(1/L) * (xj * xd / tox) * factor
+   * Short channel Vth roll-off (charge sharing model)
    */
-  shortChannelVthShift(
+  private shortChannelVthShift(
     L_nm: number,
     xj_nm: number,
     tox_nm: number,
@@ -97,54 +134,47 @@ export class LevelBEngine {
     doping: number,
     T: number
   ): number {
+    if (!this.effects.shortChannel) return 0;
+
     const L = L_nm * NM_TO_CM;
     const xj = xj_nm * NM_TO_CM;
     const tox = tox_nm * NM_TO_CM;
 
-    // Depletion width at drain
     const eps_si = EPS0 * Si.eps_r;
     const phiF = Math.abs(this.phiF(doping, T, true));
-    const Vbi = 0.7; // Built-in potential approximation
+    const Vbi = 0.7;
     const xd = Math.sqrt((2 * eps_si * (Vbi + Math.abs(Vds))) / (Q * doping * 1e6));
 
-    // Charge sharing factor
     const factor = 0.5 * (xj + xd) / L;
     const deltaVth = -factor * (2 * phiF) * Math.min(1, 2 * tox / xj);
 
-    return Math.max(deltaVth, -0.3); // Limit roll-off
+    return Math.max(deltaVth, -0.3);
   }
 
   /**
    * DIBL coefficient: η (mV/V)
-   * ΔVth = -η * Vds
    */
-  diblCoefficient(L_nm: number, tox_nm: number, xj_nm: number): number {
-    // Empirical DIBL model
-    const L = L_nm;
-    const tox = tox_nm;
-    const xj = xj_nm;
+  private diblCoefficient(L_nm: number, tox_nm: number, xj_nm: number): number {
+    if (!this.effects.dibl) return 0;
 
-    // Characteristic length
-    const lambda = Math.sqrt(tox * xj);
-
-    // DIBL increases as L decreases relative to lambda
-    const eta = 0.08 * Math.exp(-L / (3 * lambda));
-
-    return Math.min(eta, 0.2); // Limit to 200 mV/V max
+    const lambda = Math.sqrt(tox_nm * xj_nm);
+    const eta = 0.08 * Math.exp(-L_nm / (3 * lambda));
+    return Math.min(eta, 0.2);
   }
 
   /**
    * Channel length modulation parameter λ
    */
-  clmParameter(L_nm: number, _doping: number): number {
+  private clmParameter(L_nm: number): number {
+    if (!this.effects.clm) return 0;
+
     const L = L_nm * NM_TO_CM;
-    // Empirical: λ ∝ 1/L
-    const lambda = 0.01e-4 / L; // 1/V, scaled
-    return Math.min(lambda, 0.5); // Limit
+    const lambda = 0.01e-4 / L;
+    return Math.min(lambda, 0.5);
   }
 
   /**
-   * Threshold voltage with all effects
+   * Threshold voltage with all applicable effects
    */
   Vth(
     params: DeviceParams,
@@ -174,15 +204,24 @@ export class LevelBEngine {
     const Vsb = isNMOS ? -Vbs : Vbs;
     const phiS = Math.abs(2 * phiF);
 
-    // Long channel Vth
+    // Long channel Vth with body effect
     let Vth0: number;
-    if (isNMOS) {
-      Vth0 = Vfb + 2 * phiF + gamma * Math.sqrt(phiS + Math.max(0, Vsb));
+    if (this.effects.bodyEffect) {
+      if (isNMOS) {
+        Vth0 = Vfb + 2 * phiF + gamma * Math.sqrt(phiS + Math.max(0, Vsb));
+      } else {
+        Vth0 = Vfb + 2 * phiF - gamma * Math.sqrt(phiS + Math.max(0, -Vsb));
+      }
     } else {
-      Vth0 = Vfb + 2 * phiF - gamma * Math.sqrt(phiS + Math.max(0, -Vsb));
+      // Without body effect, use zero-bias Vth
+      if (isNMOS) {
+        Vth0 = Vfb + 2 * phiF + gamma * Math.sqrt(phiS);
+      } else {
+        Vth0 = Vfb + 2 * phiF - gamma * Math.sqrt(phiS);
+      }
     }
 
-    // Short channel effect (Vth roll-off)
+    // Short channel effect
     const deltaVth_sc = this.shortChannelVthShift(
       params.gate.length,
       params.sourceDrain.junctionDepth,
@@ -204,51 +243,29 @@ export class LevelBEngine {
   }
 
   /**
-   * Effective mobility with vertical field degradation
-   * μ_eff = μ_0 / (1 + θ*(Vgs - Vth))
+   * Subthreshold swing
    */
-  effectiveMobility(
-    mu0: number,
-    Vgs: number,
-    Vth: number,
-    theta: number = 0.1
-  ): number {
-    const Vov = Math.max(Vgs - Vth, 0);
-    return mu0 / (1 + theta * Vov);
-  }
+  subthresholdSwing(params: DeviceParams, T: number): number {
+    const oxideProps = OXIDES[params.gate.oxideMaterial];
+    const Cox = this.oxideCap(oxideProps.eps_r, params.gate.tox);
 
-  /**
-   * Velocity saturation effect
-   * μ_eff = μ / (1 + μ*E / vsat)
-   */
-  velocitySaturatedMobility(
-    mu: number,
-    Vds: number,
-    L_nm: number,
-    vsat: number
-  ): number {
-    const L = L_nm * NM_TO_CM;
-    const E = Math.abs(Vds) / L; // V/cm
-    return mu / (1 + (mu * E) / vsat);
-  }
+    const eps_si = EPS0 * Si.eps_r * 1e-2;
+    const phiF = Math.abs(this.phiF(params.substrate.doping, T, true));
+    const Wdep = Math.sqrt((2 * eps_si * 2 * phiF) / (Q * params.substrate.doping));
+    const Cdep = eps_si / Wdep;
 
-  /**
-   * Saturation voltage with velocity saturation
-   * Vdsat = (Vgs - Vth) * Esat*L / (Esat*L + Vgs - Vth)
-   */
-  saturationVoltage(
-    Vgs: number,
-    Vth: number,
-    L_nm: number,
-    mu: number,
-    vsat: number
-  ): number {
-    const Vov = Math.max(Vgs - Vth, 0.001);
-    const L = L_nm * NM_TO_CM;
-    const Esat = 2 * vsat / mu; // Saturation field
+    const n = 1 + Cdep / Cox;
+    const Vt = thermalVoltage(T);
 
-    const Vdsat = (Vov * Esat * L) / (Esat * L + Vov);
-    return Math.max(Vdsat, 0.01);
+    // Interface trap contribution (if subthreshold slope effect enabled)
+    let n_eff = n;
+    if (this.effects.subthresholdSlope) {
+      const Dit = params.advanced.interfaceTrapDensity;
+      const Cit = Q * Dit;
+      n_eff = n + Cit / Cox;
+    }
+
+    return n_eff * Vt * Math.log(10) * 1000; // mV/dec
   }
 
   /**
@@ -263,35 +280,27 @@ export class LevelBEngine {
   }
 
   /**
-   * Subthreshold swing (non-ideal)
-   * SS = (kT/q) * ln(10) * (1 + Cdep/Cox) * n
+   * Saturation voltage with velocity saturation
    */
-  subthresholdSwing(
-    params: DeviceParams,
-    T: number
+  private saturationVoltage(
+    Vov: number,
+    L_nm: number,
+    mu: number,
+    vsat: number
   ): number {
-    const oxideProps = OXIDES[params.gate.oxideMaterial];
-    const Cox = this.oxideCap(oxideProps.eps_r, params.gate.tox);
+    if (!this.effects.velocitySaturation) {
+      return Math.max(Vov, 0.01);
+    }
 
-    const eps_si = EPS0 * Si.eps_r * 1e-2; // F/cm (EPS0 is F/m)
-    const phiF = Math.abs(this.phiF(params.substrate.doping, T, true));
-    const Wdep = Math.sqrt((2 * eps_si * 2 * phiF) / (Q * params.substrate.doping));
-    const Cdep = eps_si / Wdep;
-
-    const n = 1 + Cdep / Cox;
-    const Vt = thermalVoltage(T);
-
-    // Interface trap contribution
-    const Dit = params.advanced.interfaceTrapDensity;
-    const Cit = Q * Dit; // Approximate
-    const n_eff = n + Cit / Cox;
-
-    return n_eff * Vt * Math.log(10) * 1000; // mV/dec
+    const L = L_nm * NM_TO_CM;
+    const Esat = 2 * vsat / mu;
+    const Vov_pos = Math.max(Vov, 0.001);
+    const Vdsat = (Vov_pos * Esat * L) / (Esat * L + Vov_pos);
+    return Math.max(Vdsat, 0.01);
   }
 
   /**
-   * Drain current with all Level B effects
-   * Uses unified model with smooth transitions to avoid discontinuities
+   * Drain current with all applicable effects
    */
   drainCurrent(
     deviceType: DeviceType,
@@ -306,7 +315,7 @@ export class LevelBEngine {
     const Vds_eff = isNMOS ? vds : -vds;
     const absVds = Math.abs(Vds_eff);
 
-    // Threshold voltage with all effects
+    // Threshold voltage
     const Vth = this.Vth(params, T, deviceType, vbs, vds);
     const Vt = thermalVoltage(T);
 
@@ -324,7 +333,6 @@ export class LevelBEngine {
       ? mobilityElectron(params.channel.doping, T)
       : mobilityHole(params.channel.doping, T);
 
-    // Saturation velocity
     const vsat = isNMOS ? vsatElectron(T) : vsatHole(T);
 
     const Vov = Vgs_eff - Vth;
@@ -333,31 +341,31 @@ export class LevelBEngine {
     const SS = this.subthresholdSwing(params, T);
     const n = SS / (Vt * Math.log(10) * 1000);
 
-    // Subthreshold current component
-    // Clamp Vov for subthreshold calculation to prevent exponential blowup
-    // The subthreshold model is only valid for Vov < few * n * Vt
+    // Subthreshold current component (clamped to prevent exponential blowup)
     const Vov_sub = Math.min(Vov, 3 * n * Vt);
     const I0 = (W / L) * mu0 * Cox * (n - 1) * Vt * Vt;
     const Isub = I0 * Math.exp(Vov_sub / (n * Vt)) * (1 - Math.exp(-absVds / Vt));
 
-    // Smooth overdrive for unified model (ensures positive value)
+    // Smooth overdrive for unified model
     const Vov_smooth = n * Vt * Math.log(1 + Math.exp(Vov / (n * Vt)));
 
     // Apply mobility degradation
-    const theta = 0.1; // Mobility degradation factor
-    const mu_eff = mu0 / (1 + theta * Vov_smooth);
+    let mu_eff = mu0;
+    if (this.effects.mobilityDegradation) {
+      const theta = 0.1;
+      mu_eff = mu0 / (1 + theta * Vov_smooth);
+    }
 
-    // Saturation voltage with velocity saturation
-    const Esat = 2 * vsat / mu_eff;
-    const Vdsat = (Vov_smooth * Esat * L) / (Esat * L + Vov_smooth + 1e-9);
+    // Saturation voltage
+    const Vdsat = this.saturationVoltage(Vov_smooth, L_nm, mu_eff, vsat);
 
     // CLM parameter
-    const lambda = this.clmParameter(L_nm, params.substrate.doping);
+    const lambda = this.clmParameter(L_nm);
 
-    // Unified current model
+    // Current calculation
     const k = (W / L) * mu_eff * Cox;
 
-    // Effective Vds for current calculation (clamped to avoid negative Id_lin)
+    // Effective Vds for current calculation
     const Vds_lin = Math.min(absVds, Vdsat);
 
     // Linear region current
@@ -367,7 +375,7 @@ export class LevelBEngine {
     const Id_sat_base = k * (Vov_smooth * Vdsat - Vdsat * Vdsat / 2);
     const Id_sat = Id_sat_base * (1 + lambda * Math.max(0, absVds - Vdsat));
 
-    // Smooth transition between linear and saturation using tanh
+    // Smooth transition between linear and saturation
     const transitionWidth = Math.max(0.05 * Vdsat, 0.01);
     const satFactor = 0.5 * (1 + Math.tanh((absVds - Vdsat) / transitionWidth));
 
@@ -375,20 +383,21 @@ export class LevelBEngine {
     const Id_strong = (1 - satFactor) * Id_lin + satFactor * Id_sat;
 
     // Blend strong inversion with subthreshold current
-    // blendFactor → 0 for Vov << 0 (subthreshold), → 1 for Vov >> 0 (strong inversion)
     const blendFactor = 1 / (1 + Math.exp(-Vov / (2 * Vt)));
     let Id = blendFactor * Id_strong + (1 - blendFactor) * Isub;
 
-    // Ensure minimum off-state leakage (realistic floor)
+    // Ensure minimum off-state leakage
     Id = Math.max(Id, 1e-18);
 
     // Series resistance effect
-    const Rs = params.advanced.seriesResistanceS;
-    const Rd = params.advanced.seriesResistanceD;
-    if ((Rs > 0 || Rd > 0) && Id > 0 && absVds > 0) {
-      const Rtotal = Rs + Rd;
-      const Vds_int = Math.max(absVds - Id * Rtotal, 0.01 * absVds);
-      Id = Id * Vds_int / absVds;
+    if (this.effects.seriesResistance) {
+      const Rs = params.advanced.seriesResistanceS;
+      const Rd = params.advanced.seriesResistanceD;
+      if ((Rs > 0 || Rd > 0) && Id > 0 && absVds > 0) {
+        const Rtotal = Rs + Rd;
+        const Vds_int = Math.max(absVds - Id * Rtotal, 0.01 * absVds);
+        Id = Id * Vds_int / absVds;
+      }
     }
 
     return isNMOS ? Id : -Id;
@@ -403,7 +412,7 @@ export class LevelBEngine {
     bias: BiasConditions,
     T: number
   ): number {
-    const dV = 0.001; // 1mV
+    const dV = 0.001;
     const Id1 = this.drainCurrent(deviceType, params, { ...bias, vgs: bias.vgs - dV }, T);
     const Id2 = this.drainCurrent(deviceType, params, { ...bias, vgs: bias.vgs + dV }, T);
     return (Id2 - Id1) / (2 * dV);
@@ -425,7 +434,7 @@ export class LevelBEngine {
   }
 
   /**
-   * MOS capacitance (same as Level A for now)
+   * MOS capacitance
    */
   mosCapacitance(
     deviceType: DeviceType,
@@ -451,7 +460,7 @@ export class LevelBEngine {
       params.advanced.fixedCharge
     );
 
-    const eps_si = EPS0 * Si.eps_r * 1e-2; // F/cm (EPS0 is F/m)
+    const eps_si = EPS0 * Si.eps_r * 1e-2;
     const Vgb = Vg_eff - Vfb;
 
     if ((isNMOS && Vgb < 0) || (!isNMOS && Vgb > 0)) {
@@ -475,7 +484,7 @@ export class LevelBEngine {
   }
 
   /**
-   * Band diagram (same structure as Level A)
+   * Band diagram
    */
   bandDiagram(
     deviceType: DeviceType,
@@ -805,7 +814,9 @@ export class LevelBEngine {
     // DIBL
     const Vth_lowVds = this.Vth(params, T, deviceType, 0, isNMOS ? 0.05 : -0.05);
     const Vth_highVds = this.Vth(params, T, deviceType, 0, isNMOS ? 1.0 : -1.0);
-    const DIBL = Math.abs((Vth_lowVds - Vth_highVds) / 0.95) * 1000; // mV/V
+    const DIBL = this.effects.dibl
+      ? Math.abs((Vth_lowVds - Vth_highVds) / 0.95) * 1000
+      : 0;
 
     // gm_max
     const gmCurve = this.sweepGm(deviceType, params, T, Vdd);
@@ -816,7 +827,7 @@ export class LevelBEngine {
       ? mobilityElectron(params.channel.doping, T)
       : mobilityHole(params.channel.doping, T);
     const vsat = isNMOS ? vsatElectron(T) : vsatHole(T);
-    const Vdsat = this.saturationVoltage(Math.abs(Vdd), Math.abs(Vth), params.gate.length, mu0, vsat);
+    const Vdsat = this.saturationVoltage(Math.abs(Vdd) - Math.abs(Vth), params.gate.length, mu0, vsat);
 
     return {
       Vth,
@@ -846,6 +857,7 @@ export class LevelBEngine {
     depletionWidth: number;
     gm: SweepCurve;
     gds: SweepCurve;
+    effects: CompactModelEffects;
   } {
     const output = this.sweepIdVds(deviceType, params, T);
     const { linear, log } = this.sweepIdVgs(deviceType, params, T);
@@ -861,6 +873,6 @@ export class LevelBEngine {
     const gm = this.sweepGm(deviceType, params, T, Vdd);
     const gds = this.sweepGds(deviceType, params, T, Vdd);
 
-    return { iv, cv, band, metrics, depletionWidth, gm, gds };
+    return { iv, cv, band, metrics, depletionWidth, gm, gds, effects: this.getEffects() };
   }
 }
