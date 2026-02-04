@@ -11,6 +11,7 @@ import type {
 } from '../types/device';
 import { type TechnologyNode, getPresetForNode } from '../presets/technologyNodes';
 import { DEFAULT_EFFECTS } from '../physics/compactEngine';
+import { processToDevice } from '../physics/processToDevice';
 
 interface DeviceStore {
   deviceType: DeviceType;
@@ -277,7 +278,27 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
 
   setAllCompactEffects: (effects) => set({ compactEffects: effects }),
 
-  setMode: (mode) => set({ mode }),
+  setMode: (mode) =>
+    set((state) => {
+      if (mode === 'process') {
+        // When switching to process mode, calculate device params from current process params
+        const calculatedDevice = processToDevice(state.processParams, state.deviceType);
+        return {
+          mode,
+          deviceParams: {
+            ...state.deviceParams,
+            ...calculatedDevice,
+            gate: { ...state.deviceParams.gate, ...calculatedDevice.gate },
+            channel: { ...state.deviceParams.channel, ...calculatedDevice.channel },
+            sourceDrain: { ...state.deviceParams.sourceDrain, ...calculatedDevice.sourceDrain },
+            substrate: { ...state.deviceParams.substrate, ...calculatedDevice.substrate },
+            geometry: { ...state.deviceParams.geometry, ...calculatedDevice.geometry },
+            advanced: { ...state.deviceParams.advanced, ...calculatedDevice.advanced },
+          },
+        };
+      }
+      return { mode };
+    }),
 
   setTemperature: (temperature) => set({ temperature }),
 
@@ -307,15 +328,33 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
     })),
 
   updateProcessParam: (group, key, value) =>
-    set((state) => ({
-      processParams: {
+    set((state) => {
+      const newProcessParams = {
         ...state.processParams,
         [group]: {
           ...state.processParams[group],
           [key]: value,
         },
-      },
-    })),
+      };
+
+      // Auto-calculate device params from process params
+      const calculatedDevice = processToDevice(newProcessParams, state.deviceType);
+
+      return {
+        processParams: newProcessParams,
+        deviceParams: {
+          ...state.deviceParams,
+          ...calculatedDevice,
+          gate: { ...state.deviceParams.gate, ...calculatedDevice.gate },
+          channel: { ...state.deviceParams.channel, ...calculatedDevice.channel },
+          sourceDrain: { ...state.deviceParams.sourceDrain, ...calculatedDevice.sourceDrain },
+          substrate: { ...state.deviceParams.substrate, ...calculatedDevice.substrate },
+          geometry: { ...state.deviceParams.geometry, ...calculatedDevice.geometry },
+          advanced: { ...state.deviceParams.advanced, ...calculatedDevice.advanced },
+        },
+        techNode: 'custom' as TechnologyNode,
+      };
+    }),
 
   updateBias: (key, value) =>
     set((state) => ({
