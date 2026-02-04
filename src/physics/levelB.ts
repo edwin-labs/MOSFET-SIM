@@ -333,51 +333,62 @@ export class LevelBEngine {
     const SS = this.subthresholdSwing(params, T);
     const n = SS / (Vt * Math.log(10) * 1000);
 
-    // Smooth overdrive for unified model
+    // Subthreshold current component
+    // Clamp Vov for subthreshold calculation to prevent exponential blowup
+    // The subthreshold model is only valid for Vov < few * n * Vt
+    const Vov_sub = Math.min(Vov, 3 * n * Vt);
+    const I0 = (W / L) * mu0 * Cox * (n - 1) * Vt * Vt;
+    const Isub = I0 * Math.exp(Vov_sub / (n * Vt)) * (1 - Math.exp(-absVds / Vt));
+
+    // Smooth overdrive for unified model (ensures positive value)
     const Vov_smooth = n * Vt * Math.log(1 + Math.exp(Vov / (n * Vt)));
 
-    // Apply mobility degradation (independent of Vds for stability)
+    // Apply mobility degradation
     const theta = 0.1; // Mobility degradation factor
-    const mu_eff = mu0 / (1 + theta * Math.max(Vov_smooth, 0));
+    const mu_eff = mu0 / (1 + theta * Vov_smooth);
 
-    // Saturation voltage with velocity saturation (using smooth Vov)
+    // Saturation voltage with velocity saturation
     const Esat = 2 * vsat / mu_eff;
-    const Vdsat = (Vov_smooth * Esat * L) / (Esat * L + Vov_smooth + 0.001);
+    const Vdsat = (Vov_smooth * Esat * L) / (Esat * L + Vov_smooth + 1e-9);
 
     // CLM parameter
     const lambda = this.clmParameter(L_nm, params.substrate.doping);
 
-    // Unified current model with smooth linear-saturation transition
+    // Unified current model
     const k = (W / L) * mu_eff * Cox;
 
-    // Linear/Saturation blend using smooth transition
-    const alpha = absVds / (Vdsat + 0.001);
-    const smoothSat = alpha / (1 + alpha); // Smooth saturation factor
+    // Effective Vds for current calculation (clamped to avoid negative Id_lin)
+    const Vds_lin = Math.min(absVds, Vdsat);
 
-    // Linear region contribution
-    const Id_lin = k * (Vov_smooth * absVds - absVds * absVds / 2);
+    // Linear region current
+    const Id_lin = k * (Vov_smooth * Vds_lin - Vds_lin * Vds_lin / 2);
 
-    // Saturation region contribution with CLM
-    const Id_sat = (k / 2) * Vdsat * Vdsat * (1 + lambda * Math.max(0, absVds - Vdsat));
+    // Saturation current with CLM
+    const Id_sat_base = k * (Vov_smooth * Vdsat - Vdsat * Vdsat / 2);
+    const Id_sat = Id_sat_base * (1 + lambda * Math.max(0, absVds - Vdsat));
 
-    // Blend between linear and saturation
-    let Id = (1 - smoothSat) * Id_lin + smoothSat * Id_sat;
+    // Smooth transition between linear and saturation using tanh
+    const transitionWidth = Math.max(0.05 * Vdsat, 0.01);
+    const satFactor = 0.5 * (1 + Math.tanh((absVds - Vdsat) / transitionWidth));
 
-    // Ensure non-negative current for positive Vds
-    Id = Math.max(Id, 0);
+    // Strong inversion current
+    const Id_strong = (1 - satFactor) * Id_lin + satFactor * Id_sat;
 
-    // Apply drain-induced current reduction (DIBL effect on current)
-    // Already included in Vth calculation
+    // Blend strong inversion with subthreshold current
+    // blendFactor → 0 for Vov << 0 (subthreshold), → 1 for Vov >> 0 (strong inversion)
+    const blendFactor = 1 / (1 + Math.exp(-Vov / (2 * Vt)));
+    let Id = blendFactor * Id_strong + (1 - blendFactor) * Isub;
+
+    // Ensure minimum off-state leakage (realistic floor)
+    Id = Math.max(Id, 1e-18);
 
     // Series resistance effect
     const Rs = params.advanced.seriesResistanceS;
     const Rd = params.advanced.seriesResistanceD;
-    if ((Rs > 0 || Rd > 0) && Id > 0) {
+    if ((Rs > 0 || Rd > 0) && Id > 0 && absVds > 0) {
       const Rtotal = Rs + Rd;
-      const Vds_int = absVds - Id * Rtotal;
-      if (Vds_int > 0.001 * absVds) {
-        Id = Id * Vds_int / absVds;
-      }
+      const Vds_int = Math.max(absVds - Id * Rtotal, 0.01 * absVds);
+      Id = Id * Vds_int / absVds;
     }
 
     return isNMOS ? Id : -Id;
