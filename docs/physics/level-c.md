@@ -1,0 +1,106 @@
+# Level C - Numerical Model
+
+Level C provides **self-consistent numerical solution** of semiconductor device equations using 2D mesh-based simulation. This is the most accurate model but computationally intensive.
+
+## Fundamental Equations
+
+### 1. Poisson Equation
+
+Relates electrostatic potential to charge density:
+
+$$
+\nabla^2 \psi = -\frac{\rho}{\varepsilon} = -\frac{q(p - n + N_D^+ - N_A^-)}{\varepsilon_{Si}}
+$$
+
+Where:
+- $\psi$: Electrostatic potential
+- $n$, $p$: Electron and hole concentrations
+- $N_D^+$, $N_A^-$: Ionized donor and acceptor concentrations
+
+### 2. Continuity Equations
+
+Conservation of carriers with generation/recombination:
+
+**Electrons**:
+$$
+\frac{\partial n}{\partial t} = \frac{1}{q} \nabla \cdot \mathbf{J}_n + G - R
+$$
+
+**Holes**:
+$$
+\frac{\partial p}{\partial t} = -\frac{1}{q} \nabla \cdot \mathbf{J}_p + G - R
+$$
+
+### 3. Drift-Diffusion Current
+
+$$
+\mathbf{J}_n = q\mu_n n \mathbf{E} + qD_n \nabla n
+$$
+
+$$
+\mathbf{J}_p = q\mu_p p \mathbf{E} - qD_p \nabla p
+$$
+
+Using Einstein relation: $D = \mu \cdot kT/q$
+
+## Numerical Methods
+
+### Mesh Generation
+
+- Non-uniform 2D rectangular mesh
+- Fine mesh near interfaces (~0.5 nm)
+- Coarser mesh in bulk regions
+
+### Scharfetter-Gummel Discretization
+
+For stable discretization of current density:
+
+$$
+J_n = \frac{qD_n}{\Delta x} \left[ n_{i+1} \cdot B\left(-\frac{\Delta\psi}{V_T}\right) - n_i \cdot B\left(\frac{\Delta\psi}{V_T}\right) \right]
+$$
+
+Where $B(x) = x/(e^x - 1)$ is the Bernoulli function.
+
+### Gummel Iteration
+
+Self-consistent solution algorithm:
+
+1. **Solve Poisson**: $\psi$ from current $n$, $p$
+2. **Solve n-continuity**: Update $n$ from $\psi$
+3. **Solve p-continuity**: Update $p$ from $\psi$
+4. **Check convergence**: $|\Delta\psi| <$ tolerance
+5. **Repeat** if not converged
+
+### Linear Solver
+
+BiCGSTAB with Jacobi preconditioning for sparse matrix solution.
+
+## Boundary Conditions
+
+| Boundary | Condition |
+|----------|-----------|
+| Gate | Dirichlet: $\psi = V_G - \phi_{ms}$ |
+| Ohmic contacts | Dirichlet: $\psi = V + \phi_F$ |
+| Oxide-Si interface | Continuity: $\varepsilon_{ox} E_{ox} = \varepsilon_{Si} E_{Si}$ |
+| Open boundaries | Neumann: $\nabla\psi = 0$ |
+
+## Convergence
+
+- Typical convergence: 10-50 iterations
+- Under-relaxation: $\omega = 0.1 - 0.5$
+- Tolerance: $|\Delta\psi| < 10^{-6}$ V
+
+## Computational Cost
+
+| Mesh Size | Single Point | 25-Point Sweep |
+|-----------|-------------|----------------|
+| 50×50 | ~0.5 s | ~10 s |
+| 100×100 | ~2 s | ~30-60 s |
+| 200×200 | ~8 s | ~3-4 min |
+
+## When to Use
+
+- Accurate device characterization
+- Novel device structure analysis
+- Validating compact models
+- Research applications
