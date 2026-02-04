@@ -7,13 +7,25 @@
  * - Cancel button
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useLevelC } from '../../hooks/useLevelC';
+import { getGPUInfo } from '../../physics/gpu';
 import styles from './NumericalControls.module.css';
 
 export function NumericalControls() {
-  const { modelType } = useDeviceStore();
+  const { modelType, useGPU, setUseGPU } = useDeviceStore();
+  const [gpuAvailable, setGpuAvailable] = useState(false);
+  const [gpuName, setGpuName] = useState<string | null>(null);
+
+  useEffect(() => {
+    getGPUInfo().then((info) => {
+      setGpuAvailable(info.available);
+      if (info.available) {
+        setGpuName(info.device || info.adapter || 'Unknown GPU');
+      }
+    });
+  }, []);
   const { state, runSinglePoint, runSweep, cancel } = useLevelC();
 
   const [sweepType, setSweepType] = useState<'transfer' | 'output'>('transfer');
@@ -161,10 +173,31 @@ export function NumericalControls() {
         <div className={styles.error}>{state.workerState.error}</div>
       )}
 
+      <div className={styles.section}>
+        <div className={styles.sectionTitle}>Acceleration</div>
+        <label className={styles.checkbox}>
+          <input
+            type="checkbox"
+            checked={useGPU && gpuAvailable}
+            onChange={(e) => setUseGPU(e.target.checked)}
+            disabled={!gpuAvailable || state.isRunning}
+          />
+          <span>Use WebGPU</span>
+          {gpuAvailable ? (
+            <span className={styles.gpuStatus}>{gpuName}</span>
+          ) : (
+            <span className={styles.gpuUnavailable}>Not available</span>
+          )}
+        </label>
+      </div>
+
       <div className={styles.info}>
-        <p>Uses numerical Poisson + Drift-Diffusion solver.</p>
-        <p>Mesh: ~100x100, Gummel iteration with BiCGSTAB.</p>
-        <p>Sweep time: ~30-60s for 25 points.</p>
+        <p>Poisson + Drift-Diffusion solver with Gummel iteration.</p>
+        {useGPU && gpuAvailable ? (
+          <p style={{ color: '#fbbf24' }}>GPU: Worker thread limitation - benchmark only for now.</p>
+        ) : (
+          <p>Enable WebGPU for potential acceleration.</p>
+        )}
       </div>
     </div>
   );

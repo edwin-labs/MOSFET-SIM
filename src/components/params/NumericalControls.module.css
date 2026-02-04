@@ -167,6 +167,37 @@
   margin-bottom: 12px;
 }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color);
+}
+
+.checkbox input:disabled {
+  cursor: not-allowed;
+}
+
+.gpuStatus {
+  font-size: 10px;
+  color: #4ade80;
+  margin-left: auto;
+}
+
+.gpuUnavailable {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
 .info {
   font-size: 10px;
   color: var(--text-muted);

@@ -24,6 +24,7 @@ interface DeviceStore {
   processParams: ProcessParams;
   bias: BiasConditions;
   advancedPhysics: AdvancedPhysicsOptions;
+  useGPU: boolean;
 
   setDeviceType: (type: DeviceType) => void;
   setModelType: (modelType: ModelType) => void;
@@ -44,6 +45,7 @@ interface DeviceStore {
   ) => void;
   updateBias: (key: keyof BiasConditions, value: number) => void;
   updateAdvancedPhysics: (key: keyof AdvancedPhysicsOptions, value: boolean) => void;
+  setUseGPU: (value: boolean) => void;
   resetAll: () => void;
 }
 
@@ -209,6 +211,7 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
   processParams: DEFAULT_PROCESS_PARAMS,
   bias: DEFAULT_NMOS_BIAS,
   advancedPhysics: DEFAULT_ADVANCED_PHYSICS,
+  useGPU: false,
 
   setDeviceType: (type) =>
     set((state) => {
@@ -371,6 +374,8 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
         [key]: value,
       },
     })),
+
+  setUseGPU: (value) => set({ useGPU: value }),
 
   resetAll: () =>
     set((state) => ({
