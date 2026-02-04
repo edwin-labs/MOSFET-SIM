@@ -1,18 +1,21 @@
 import { create } from 'zustand';
 import type {
   DeviceType,
-  PhysicsLevel,
+  ModelType,
   InputMode,
   DeviceParams,
   ProcessParams,
   BiasConditions,
   AdvancedPhysicsOptions,
+  CompactModelEffects,
 } from '../types/device';
 import { type TechnologyNode, getPresetForNode } from '../presets/technologyNodes';
+import { DEFAULT_EFFECTS } from '../physics/compactEngine';
 
 interface DeviceStore {
   deviceType: DeviceType;
-  level: PhysicsLevel;
+  modelType: ModelType;
+  compactEffects: CompactModelEffects;
   mode: InputMode;
   temperature: number;
   techNode: TechnologyNode;
@@ -22,7 +25,9 @@ interface DeviceStore {
   advancedPhysics: AdvancedPhysicsOptions;
 
   setDeviceType: (type: DeviceType) => void;
-  setLevel: (level: PhysicsLevel) => void;
+  setModelType: (modelType: ModelType) => void;
+  setCompactEffect: (key: keyof CompactModelEffects, value: boolean) => void;
+  setAllCompactEffects: (effects: CompactModelEffects) => void;
   setMode: (mode: InputMode) => void;
   setTemperature: (T: number) => void;
   setTechNode: (node: TechnologyNode) => void;
@@ -189,7 +194,8 @@ const DEFAULT_PMOS_BIAS: BiasConditions = {
 
 export const useDeviceStore = create<DeviceStore>((set) => ({
   deviceType: 'nmos',
-  level: 'A',
+  modelType: 'compact',
+  compactEffects: DEFAULT_EFFECTS,
   mode: 'device',
   temperature: 300,
   techNode: '90nm',
@@ -254,7 +260,17 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
       };
     }),
 
-  setLevel: (level) => set({ level }),
+  setModelType: (modelType) => set({ modelType }),
+
+  setCompactEffect: (key, value) =>
+    set((state) => ({
+      compactEffects: {
+        ...state.compactEffects,
+        [key]: value,
+      },
+    })),
+
+  setAllCompactEffects: (effects) => set({ compactEffects: effects }),
 
   setMode: (mode) => set({ mode }),
 

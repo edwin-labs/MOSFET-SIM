@@ -53,18 +53,13 @@ const EFFECT_OPTIONS: EffectOption[] = [
 ];
 
 export function AdvancedPhysicsPanel() {
-  const { level, advancedPhysics, updateAdvancedPhysics } = useDeviceStore();
-
-  // Only show for Level B and C
-  if (level === 'A') {
-    return null;
-  }
+  const { advancedPhysics, updateAdvancedPhysics } = useDeviceStore();
 
   return (
     <div className={styles.container}>
       <div className={styles.title}>Advanced Physics</div>
       <div className={styles.info}>
-        Enable additional physical effects for enhanced accuracy (Level B/C only)
+        Additional physical effects (work in progress)
       </div>
       <div className={styles.effectList}>
         {EFFECT_OPTIONS.map((effect) => (

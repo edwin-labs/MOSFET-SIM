@@ -4,7 +4,7 @@ import styles from './StatusBar.module.css';
 
 export function StatusBar() {
   const { status, calcTime, metrics, error } = useSimulationStore();
-  const { deviceType, level } = useDeviceStore();
+  const { deviceType, modelType } = useDeviceStore();
 
   return (
     <div className={styles.statusBar}>
@@ -19,8 +19,8 @@ export function StatusBar() {
       </div>
 
       <div className={styles.item}>
-        <span className={styles.label}>Level:</span>
-        <span className={styles.value}>{level}</span>
+        <span className={styles.label}>Model:</span>
+        <span className={styles.value}>{modelType === 'compact' ? 'Compact' : 'Numerical'}</span>
       </div>
 
       <div className={styles.item}>

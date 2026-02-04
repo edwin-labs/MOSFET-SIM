@@ -5,12 +5,12 @@ import styles from './Toolbar.module.css';
 export function Toolbar() {
   const {
     deviceType,
-    level,
+    modelType,
     mode,
     temperature,
     techNode,
     setDeviceType,
-    setLevel,
+    setModelType,
     setMode,
     setTemperature,
     setTechNode,
@@ -40,35 +40,23 @@ export function Toolbar() {
       </div>
 
       <div className={styles.group}>
-        <span className={styles.label}>Level:</span>
+        <span className={styles.label}>Model:</span>
         <div className={styles.toggle}>
           <button
-            className={`${styles.toggleBtn} ${level === 'A' ? styles.active : ''}`}
-            onClick={() => setLevel('A')}
-            title="Analytical Shockley model with subthreshold"
+            className={`${styles.toggleBtn} ${modelType === 'compact' ? styles.active : ''}`}
+            onClick={() => setModelType('compact')}
+            title="Compact model with toggleable physical effects"
           >
-            A
+            Compact
           </button>
           <button
-            className={`${styles.toggleBtn} ${level === 'B' ? styles.active : ''}`}
-            onClick={() => setLevel('B')}
-            title="Semi-empirical: Velocity saturation, DIBL, CLM, Body effect"
-          >
-            B
-          </button>
-          <button
-            className={`${styles.toggleBtn} ${level === 'C' ? styles.active : ''}`}
-            onClick={() => setLevel('C')}
+            className={`${styles.toggleBtn} ${modelType === 'numerical' ? styles.active : ''}`}
+            onClick={() => setModelType('numerical')}
             title="Numerical 2D Poisson + Drift-Diffusion (Gummel iteration)"
           >
-            C
+            Numerical
           </button>
         </div>
-        <span className={styles.levelInfo}>
-          {level === 'A' && 'Analytical'}
-          {level === 'B' && 'Semi-empirical'}
-          {level === 'C' && 'Numerical'}
-        </span>
       </div>
 
       <div className={styles.group}>

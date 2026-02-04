@@ -2,17 +2,15 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useSimulationStore } from '../store/simulationStore';
 import { useViewStore } from '../store/viewStore';
-import { LevelAEngine } from '../physics/levelA';
-import { LevelBEngine } from '../physics/levelB';
+import { CompactEngine } from '../physics/compactEngine';
 import { DopingEngine } from '../physics/doping';
 
-const levelAEngine = new LevelAEngine();
-const levelBEngine = new LevelBEngine();
+const compactEngine = new CompactEngine();
 
 export function useSimulation() {
   const timerRef = useRef<number | null>(null);
 
-  const { deviceType, level, deviceParams, bias, temperature } = useDeviceStore();
+  const { deviceType, modelType, compactEffects, deviceParams, bias, temperature } = useDeviceStore();
   const { setResult, setStatus } = useSimulationStore();
   const { autoSimulate } = useViewStore();
 
@@ -22,32 +20,11 @@ export function useSimulation() {
     try {
       setStatus('computing');
 
-      if (level === 'A') {
-        const result = levelAEngine.fullCalculation(
-          deviceType,
-          deviceParams,
-          bias,
-          temperature
-        );
+      if (modelType === 'compact') {
+        // Update engine with current effects
+        compactEngine.setEffects(compactEffects);
 
-        // Generate doping profiles
-        const doping1d = DopingEngine.generateVertical1D(deviceParams, deviceType);
-        const dopingLateral1d = DopingEngine.generateLateral1D(deviceParams, deviceType, 10);
-        const doping2d = DopingEngine.generate2D_Device(deviceParams, deviceType);
-
-        setResult({
-          ...result,
-          doping1d,
-          dopingLateral1d,
-          doping2d,
-          gm: null,
-          gds: null,
-          calcTime: performance.now() - startTime,
-          status: 'done',
-          error: null,
-        });
-      } else if (level === 'B') {
-        const result = levelBEngine.fullCalculation(
+        const result = compactEngine.fullCalculation(
           deviceType,
           deviceParams,
           bias,
@@ -75,10 +52,10 @@ export function useSimulation() {
           error: null,
         });
       } else {
-        // Level C - would use Web Worker
+        // Numerical model - uses Web Worker
         setStatus('idle');
         setResult({
-          error: 'Level C not yet implemented',
+          error: 'Numerical model not yet implemented',
           status: 'error',
         });
       }
@@ -88,12 +65,12 @@ export function useSimulation() {
         status: 'error',
       });
     }
-  }, [deviceType, level, deviceParams, bias, temperature, setResult, setStatus]);
+  }, [deviceType, modelType, compactEffects, deviceParams, bias, temperature, setResult, setStatus]);
 
   // Auto-calculate on parameter changes (with debounce)
   useEffect(() => {
     if (!autoSimulate) return;
-    if (level === 'C') return; // Level C requires manual trigger
+    if (modelType === 'numerical') return; // Numerical model requires manual trigger
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -106,7 +83,7 @@ export function useSimulation() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [deviceType, level, deviceParams, bias, temperature, autoSimulate, runCalculation]);
+  }, [deviceType, modelType, compactEffects, deviceParams, bias, temperature, autoSimulate, runCalculation]);
 
   // Run immediately on mount
   useEffect(() => {

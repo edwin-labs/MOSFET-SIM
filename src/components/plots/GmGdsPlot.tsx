@@ -1,11 +1,10 @@
 import Plot from 'react-plotly.js';
-import { useSimulationStore, useViewStore, useDeviceStore } from '../../store';
+import { useSimulationStore, useViewStore } from '../../store';
 import styles from './Plots.module.css';
 
 export function GmGdsPlot() {
   const { gm, gds, iv } = useSimulationStore();
   const { theme } = useViewStore();
-  const { level } = useDeviceStore();
 
   const isDark = theme === 'dark';
 
@@ -25,16 +24,6 @@ export function GmGdsPlot() {
       zerolinecolor: isDark ? '#3a3a5a' : '#d1d5db',
     },
   };
-
-  if (level !== 'B') {
-    return (
-      <div className={styles.plotContainer}>
-        <div className={styles.placeholder}>
-          gm/gds plots require Level B. Switch to Level B in the toolbar.
-        </div>
-      </div>
-    );
-  }
 
   if (!gm || !gds) {
     return (

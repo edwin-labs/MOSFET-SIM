@@ -8,14 +8,15 @@
  */
 
 import type { IVResult, CVResult } from '../types/simulation';
-import type { DeviceParams, BiasConditions, DeviceType, PhysicsLevel } from '../types/device';
+import type { DeviceParams, BiasConditions, DeviceType, ModelType, CompactModelEffects } from '../types/device';
 import type { TechnologyNode } from '../presets/technologyNodes';
 
 export interface ExportState {
   version: string;
   timestamp: string;
   deviceType: DeviceType;
-  level: PhysicsLevel;
+  modelType: ModelType;
+  compactEffects?: CompactModelEffects;
   techNode: TechnologyNode;
   temperature: number;
   deviceParams: DeviceParams;

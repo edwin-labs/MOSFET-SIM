@@ -1,6 +1,32 @@
 export type DeviceType = 'nmos' | 'pmos';
-export type PhysicsLevel = 'A' | 'B' | 'C';
+export type ModelType = 'compact' | 'numerical';
 export type InputMode = 'device' | 'process';
+
+/**
+ * Compact Model Effects - toggleable physical effects
+ * Each effect adds complexity and accuracy to the simulation
+ */
+export interface CompactModelEffects {
+  /** Velocity saturation - reduces current at high lateral fields */
+  velocitySaturation: boolean;
+  /** DIBL - Drain-Induced Barrier Lowering, Vth reduction with Vds */
+  dibl: boolean;
+  /** CLM - Channel Length Modulation, finite output resistance */
+  clm: boolean;
+  /** Body effect - Vth dependence on Vbs */
+  bodyEffect: boolean;
+  /** Mobility degradation - vertical field reduces mobility */
+  mobilityDegradation: boolean;
+  /** Subthreshold slope degradation - non-ideal SS due to interface traps */
+  subthresholdSlope: boolean;
+  /** Short channel Vth roll-off */
+  shortChannel: boolean;
+  /** Series resistance - S/D contact and extension resistance */
+  seriesResistance: boolean;
+}
+
+/** @deprecated Use ModelType instead */
+export type PhysicsLevel = 'A' | 'B' | 'C';
 export type OxideMaterial = 'SiO2' | 'HfO2';
 export type GateMaterial = 'poly-n' | 'poly-p' | 'TiN' | 'TaN';
 export type SubstrateType = 'p-type' | 'n-type';

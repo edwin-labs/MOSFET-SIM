@@ -19,13 +19,15 @@ import styles from './ExportPanel.module.css';
 export function ExportPanel() {
   const {
     deviceType,
-    level,
+    modelType,
+    compactEffects,
     techNode,
     temperature,
     deviceParams,
     bias,
     setDeviceType,
-    setLevel,
+    setModelType,
+    setAllCompactEffects,
     setTechNode,
     setTemperature,
     updateDeviceParam,
@@ -49,10 +51,11 @@ export function ExportPanel() {
 
   const handleExportState = () => {
     const state: ExportState = {
-      version: '1.0.0',
+      version: '2.0.0',
       timestamp: new Date().toISOString(),
       deviceType,
-      level,
+      modelType,
+      compactEffects,
       techNode,
       temperature,
       deviceParams,
@@ -75,7 +78,10 @@ export function ExportPanel() {
 
       if (state) {
         setDeviceType(state.deviceType);
-        setLevel(state.level);
+        setModelType(state.modelType);
+        if (state.compactEffects) {
+          setAllCompactEffects(state.compactEffects);
+        }
         setTechNode(state.techNode);
         setTemperature(state.temperature);
 
