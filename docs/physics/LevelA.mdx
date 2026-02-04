@@ -8,20 +8,20 @@ Level A implements the **classical Shockley MOSFET equations** with smooth subth
 
 **Linear Region** (V_DS &lt; V_GS - V_th):
 
-```
-I_D = μ × C_ox × (W/L) × [(V_GS - V_th) × V_DS - V_DS²/2]
+```math
+I_D = \mu C_{ox} \frac{W}{L} \left[ (V_{GS} - V_{th}) V_{DS} - \frac{V_{DS}^2}{2} \right]
 ```
 
 **Saturation Region** (V_DS ≥ V_GS - V_th):
 
-```
-I_D = (μ × C_ox / 2) × (W/L) × (V_GS - V_th)²
+```math
+I_D = \frac{\mu C_{ox}}{2} \frac{W}{L} (V_{GS} - V_{th})^2
 ```
 
 ### Subthreshold Region (V_GS &lt; V_th)
 
-```
-I_sub = I_0 × exp(V_GS / (n × V_T)) × [1 - exp(-V_DS / V_T)]
+```math
+I_{sub} = I_0 \exp\left(\frac{V_{GS}}{n V_T}\right) \left[1 - \exp\left(-\frac{V_{DS}}{V_T}\right)\right]
 ```
 
 Where:
@@ -31,14 +31,14 @@ Where:
 
 ## Threshold Voltage
 
-```
-V_th = V_FB + 2φ_F + γ√(2φ_F + V_SB)
+```math
+V_{th} = V_{FB} + 2\phi_F + \gamma\sqrt{2\phi_F + V_{SB}}
 ```
 
 Where:
 - **V_FB**: Flat-band voltage = φ_ms - Q_f/C_ox
-- **φ_F**: Fermi potential = (kT/q) × ln(N_A/n_i)
-- **γ**: Body effect coefficient = √(2qε_Si × N_A) / C_ox
+- **φ_F**: Fermi potential = (kT/q) ln(N_A/n_i)
+- **γ**: Body effect coefficient = √(2qε_Si N_A) / C_ox
 
 ## Capacitance Model
 
@@ -47,7 +47,7 @@ The high-frequency MOS capacitance model:
 | Region | Capacitance |
 |--------|-------------|
 | Accumulation | C = C_ox |
-| Depletion | C = C_ox × C_dep / (C_ox + C_dep) |
+| Depletion | C = C_ox · C_dep / (C_ox + C_dep) |
 | Inversion | C = C_min (HF) |
 
 ## Limitations
