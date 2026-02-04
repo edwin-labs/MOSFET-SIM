@@ -13,6 +13,11 @@ mjx-container[display="true"] {
   overflow-y: hidden;
 }
 
+/* Extra spacing between consecutive equations */
+mjx-container[display="true"] + mjx-container[display="true"] {
+  margin-top: 2em;
+}
+
 /* Subtle background for display equations */
 mjx-container[display="true"] {
   background: var(--vp-c-bg-soft);
