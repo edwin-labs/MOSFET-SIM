@@ -82,7 +82,7 @@ const DEFAULT_NMOS_DEVICE_PARAMS: DeviceParams = {
     doping: 1e17,        // cm^-3
   },
   geometry: {
-    width: 1000,         // nm
+    width: 360,          // nm (90nm NMOS default)
     overlapLength: 5,    // nm
   },
   advanced: {
@@ -116,7 +116,7 @@ const DEFAULT_PMOS_DEVICE_PARAMS: DeviceParams = {
     doping: 1e17,
   },
   geometry: {
-    width: 1000,
+    width: 720,          // nm (90nm PMOS default, 2x NMOS)
     overlapLength: 5,
   },
   advanced: {
@@ -184,7 +184,7 @@ const DEFAULT_PROCESS_PARAMS: ProcessParams = {
     type: 'STI',
     stiDepth: 300,
     stiWidth: 100,
-    activeWidth: 1000,
+    activeWidth: 360,
   },
 };
 

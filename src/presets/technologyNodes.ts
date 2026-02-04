@@ -47,7 +47,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 5e16,
       },
       geometry: {
-        width: 1000,
+        width: 720,
         overlapLength: 10,
       },
       advanced: {
@@ -80,7 +80,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 5e16,
       },
       geometry: {
-        width: 1000,
+        width: 1440,
         overlapLength: 10,
       },
       advanced: {
@@ -121,7 +121,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 1e17,
       },
       geometry: {
-        width: 1000,
+        width: 360,
         overlapLength: 5,
       },
       advanced: {
@@ -154,7 +154,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 1e17,
       },
       geometry: {
-        width: 1000,
+        width: 720,
         overlapLength: 5,
       },
       advanced: {
@@ -195,7 +195,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 2e17,
       },
       geometry: {
-        width: 1000,
+        width: 180,
         overlapLength: 3,
       },
       advanced: {
@@ -228,7 +228,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 2e17,
       },
       geometry: {
-        width: 1000,
+        width: 360,
         overlapLength: 3,
       },
       advanced: {
@@ -269,7 +269,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 5e17,
       },
       geometry: {
-        width: 1000,
+        width: 120,
         overlapLength: 2,
       },
       advanced: {
@@ -302,7 +302,7 @@ export const TECHNOLOGY_PRESETS: Record<Exclude<TechnologyNode, 'custom'>, TechN
         doping: 5e17,
       },
       geometry: {
-        width: 1000,
+        width: 240,
         overlapLength: 2,
       },
       advanced: {

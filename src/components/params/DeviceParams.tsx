@@ -122,8 +122,8 @@ export function DeviceParams() {
         <ParamSlider
           label="W"
           value={deviceParams.geometry.width}
-          min={100}
-          max={10000}
+          min={50}
+          max={2000}
           step={10}
           unit="nm"
           tooltip="Channel width"
