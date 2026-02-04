@@ -85,7 +85,7 @@ export function View2DFront() {
     ctx.fillRect(
       toX(-totalWidth / 2 + 20),
       toY(0),
-      totalWidth * scale - 40,
+      (totalWidth - 40) * scale,
       (subDepth + xj) * scale
     );
 
