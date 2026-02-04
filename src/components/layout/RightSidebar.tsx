@@ -7,6 +7,7 @@ import { GmGdsPlot } from '../plots/GmGdsPlot';
 import { DopingProfile } from '../plots/DopingProfile';
 import { Dashboard } from '../plots/Dashboard';
 import { FieldPlotsPanel } from '../plots/FieldPlots';
+import { NoisePlot } from '../plots/NoisePlot';
 import styles from './RightSidebar.module.css';
 
 interface FoldableSectionProps {
@@ -74,6 +75,10 @@ export function RightSidebar() {
 
       <FoldableSection title="2D Fields (Level C)" storageKey="right-fields">
         <FieldPlotsPanel />
+      </FoldableSection>
+
+      <FoldableSection title="Noise Analysis" storageKey="right-noise">
+        <NoisePlot />
       </FoldableSection>
     </div>
   );

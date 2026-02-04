@@ -1,10 +1,10 @@
 /**
  * Export Panel
  *
- * UI for exporting simulation data and state
+ * UI for exporting simulation data, state, and SPICE netlists
  */
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDeviceStore, useSimulationStore } from '../../store';
 import {
   downloadIVCSV,
@@ -14,6 +14,7 @@ import {
   parseImportedState,
   type ExportState,
 } from '../../utils/export';
+import { downloadSpiceNetlist, type SpiceModelType } from '../../utils/spiceExport';
 import styles from './ExportPanel.module.css';
 
 export function ExportPanel() {
@@ -34,8 +35,9 @@ export function ExportPanel() {
     updateBias,
   } = useDeviceStore();
 
-  const { iv, cv } = useSimulationStore();
+  const { iv, cv, metrics } = useSimulationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [spiceModel, setSpiceModel] = useState<SpiceModelType>('bsim3');
 
   const handleExportIV = () => {
     if (iv) {
@@ -62,6 +64,14 @@ export function ExportPanel() {
       bias,
     };
     downloadStateJSON(state);
+  };
+
+  const handleExportSpice = () => {
+    downloadSpiceNetlist(deviceType, deviceParams, bias, metrics, {
+      modelType: spiceModel,
+      includeTestbench: true,
+      includeComments: true,
+    });
   };
 
   const handleImportClick = () => {
@@ -138,6 +148,29 @@ export function ExportPanel() {
       </div>
 
       <div className={styles.section}>
+        <div className={styles.sectionTitle}>SPICE Export</div>
+        <div className={styles.spiceRow}>
+          <select
+            className={styles.spiceSelect}
+            value={spiceModel}
+            onChange={(e) => setSpiceModel(e.target.value as SpiceModelType)}
+          >
+            <option value="level1">Level 1</option>
+            <option value="level3">Level 3</option>
+            <option value="bsim3">BSIM3v3</option>
+            <option value="bsim4">BSIM4</option>
+          </select>
+          <button
+            className={styles.exportBtn}
+            onClick={handleExportSpice}
+            title="Export SPICE model card with testbench"
+          >
+            Export .sp
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.section}>
         <div className={styles.sectionTitle}>Save / Load State</div>
         <div className={styles.buttonGroup}>
           <button
@@ -165,8 +198,9 @@ export function ExportPanel() {
       </div>
 
       <div className={styles.info}>
-        <p>CSV files can be opened in Excel or other spreadsheet software.</p>
-        <p>JSON files preserve all device parameters for later use.</p>
+        <p>CSV: Spreadsheet-compatible data export</p>
+        <p>SPICE: Model card for circuit simulation</p>
+        <p>JSON: Complete state save/restore</p>
       </div>
     </div>
   );

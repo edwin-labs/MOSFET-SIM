@@ -101,7 +101,7 @@ export function GmGdsPlot() {
             xaxis: { ...layoutBase.xaxis, title: { text: 'Vgs (V)', font: { size: 10 } } },
             yaxis: { ...layoutBase.yaxis, title: { text: 'gm (uS)', font: { size: 10 } } },
           }}
-          config={{ responsive: true, displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
           style={{ width: '100%', height: '100%' }}
         />
       </div>
@@ -115,7 +115,7 @@ export function GmGdsPlot() {
             xaxis: { ...layoutBase.xaxis, title: { text: 'Vds (V)', font: { size: 10 } } },
             yaxis: { ...layoutBase.yaxis, title: { text: 'gds (uS)', font: { size: 10 } } },
           }}
-          config={{ responsive: true, displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
           style={{ width: '100%', height: '100%' }}
         />
       </div>
@@ -131,7 +131,7 @@ export function GmGdsPlot() {
                 xaxis: { ...layoutBase.xaxis, title: { text: 'Vgs (V)', font: { size: 10 } } },
                 yaxis: { ...layoutBase.yaxis, title: { text: 'gm/Id (1/V)', font: { size: 10 } } },
               }}
-              config={{ responsive: true, displayModeBar: false }}
+              config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
               style={{ width: '100%', height: '100%' }}
             />
           </div>

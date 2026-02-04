@@ -28,6 +28,28 @@
   flex-wrap: wrap;
 }
 
+.spiceRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.spiceSelect {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.spiceSelect:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
 .exportBtn,
 .importBtn {
   flex: 1;

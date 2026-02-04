@@ -114,7 +114,7 @@ export function DopingProfile() {
               exponentformat: 'e',
             },
           }}
-          config={{ responsive: true, displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
           style={{ width: '100%', height: '100%' }}
         />
       </div>
@@ -144,7 +144,7 @@ export function DopingProfile() {
               },
             ],
           }}
-          config={{ responsive: true, displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
           style={{ width: '100%', height: '100%' }}
         />
       </div>
@@ -189,7 +189,7 @@ export function DopingProfile() {
                   },
                 ],
               }}
-              config={{ responsive: true, displayModeBar: false }}
+              config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
               style={{ width: '100%', height: '100%' }}
             />
           </div>

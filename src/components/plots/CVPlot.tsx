@@ -84,7 +84,7 @@ export function CVPlot() {
               range: [0, 1.1],
             },
           }}
-          config={{ responsive: true, displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'], displaylogo: false }}
           style={{ width: '100%', height: '100%' }}
         />
       </div>
