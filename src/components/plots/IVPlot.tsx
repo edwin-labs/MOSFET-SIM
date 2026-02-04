@@ -119,8 +119,39 @@ export function IVPlot() {
     }
   }
 
+  // Format current for display
+  const formatCurrent = (id: number): string => {
+    const absId = Math.abs(id);
+    if (absId >= 1e-3) return `${(absId * 1e3).toFixed(3)} mA`;
+    if (absId >= 1e-6) return `${(absId * 1e6).toFixed(3)} uA`;
+    if (absId >= 1e-9) return `${(absId * 1e9).toFixed(3)} nA`;
+    if (absId >= 1e-12) return `${(absId * 1e12).toFixed(3)} pA`;
+    return `${absId.toExponential(2)} A`;
+  };
+
   return (
     <div className={styles.plotContainer}>
+      {operatingPoint && (
+        <div className={styles.operatingPoint}>
+          <span>
+            <span className={styles.label}>Vgs:</span>
+            <span className={styles.value}>{operatingPoint.vgs.toFixed(2)} V</span>
+          </span>
+          <span>
+            <span className={styles.label}>Vds:</span>
+            <span className={styles.value}>{operatingPoint.vds.toFixed(2)} V</span>
+          </span>
+          <span>
+            <span className={styles.label}>Vbs:</span>
+            <span className={styles.value}>{operatingPoint.vbs.toFixed(2)} V</span>
+          </span>
+          <span>
+            <span className={styles.label}>Id:</span>
+            <span className={styles.highlight}>{formatCurrent(operatingPoint.id)}</span>
+          </span>
+        </div>
+      )}
+
       <div className={styles.plotTitle}>Output Characteristics</div>
       <div className={styles.plotWrapper}>
         <Plot
