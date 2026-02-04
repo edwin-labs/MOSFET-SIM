@@ -41,6 +41,7 @@ export function useSimulation() {
           cv: result.cv,
           band: result.band,
           metrics: result.metrics,
+          operatingPoint: result.operatingPoint,
           depletionWidth: result.depletionWidth,
           gm: result.gm,
           gds: result.gds,

@@ -183,9 +183,10 @@ export function View3D() {
     const Nsd = deviceParams.sourceDrain.doping;
     const Nldd = deviceParams.sourceDrain.lddDoping;
 
-    // Colors - either structural or doping-based
-    const colors = colormap === 'doping'
-      ? {
+    // Colors - either structural, doping-based, or net type
+    const getColors = () => {
+      if (colormap === 'doping') {
+        return {
           substrate: dopingToHex(isNMOS ? 0 : Nsub, isNMOS ? Nsub : 0),
           channel: dopingToHex(isNMOS ? 0 : Nsub, isNMOS ? Nsub : 0),
           gateOxide: 0x80deea,
@@ -195,18 +196,36 @@ export function View3D() {
           ldd: dopingToHex(isNMOS ? Nldd : 0, isNMOS ? 0 : Nldd),
           spacer: 0xffeb3b,
           depletion: 0x00ff00,
-        }
-      : {
-          substrate: isNMOS ? 0x2196f3 : 0xf44336, // p-type blue, n-type red
+        };
+      } else if (colormap === 'netType') {
+        // Simplified: n-type red, p-type blue (solid colors)
+        return {
+          substrate: isNMOS ? 0x5050dc : 0xdc5050, // p-type blue, n-type red
+          channel: isNMOS ? 0x5050dc : 0xdc5050,
+          gateOxide: 0x80deea,
+          gate: 0x9e9e9e,
+          source: isNMOS ? 0xdc5050 : 0x5050dc, // n+ red, p+ blue
+          drain: isNMOS ? 0xdc5050 : 0x5050dc,
+          ldd: isNMOS ? 0xdc5050 : 0x5050dc,
+          spacer: 0xffeb3b,
+          depletion: 0x00ff00,
+        };
+      } else {
+        // Structure (default) - distinct colors for each region
+        return {
+          substrate: isNMOS ? 0x2196f3 : 0xf44336,
           channel: isNMOS ? 0x64b5f6 : 0xef5350,
           gateOxide: 0x80deea,
           gate: 0x9e9e9e,
-          source: isNMOS ? 0xf44336 : 0x2196f3, // n+ red, p+ blue
+          source: isNMOS ? 0xf44336 : 0x2196f3,
           drain: isNMOS ? 0xf44336 : 0x2196f3,
           ldd: isNMOS ? 0xef9a9a : 0x90caf9,
           spacer: 0xffeb3b,
           depletion: 0x00ff00,
         };
+      }
+    };
+    const colors = getColors();
 
     // Dimensions from params (scaled for visualization)
     // Coordinate system: X = channel direction, Y = vertical (up), Z = width

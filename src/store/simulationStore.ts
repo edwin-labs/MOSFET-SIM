@@ -20,6 +20,7 @@ const initialState: SimulationState = {
   dopingLateral1d: null,
   numerical2d: null,
   metrics: null,
+  operatingPoint: null,
   gm: null,
   gds: null,
   error: null,

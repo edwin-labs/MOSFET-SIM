@@ -34,6 +34,7 @@ import type {
   BandDiagramResult,
   DeviceMetrics,
   SweepCurve,
+  OperatingPoint,
 } from '../types/simulation';
 
 /** Default effects: all enabled for realistic simulation */
@@ -854,6 +855,7 @@ export class CompactEngine {
     cv: CVResult;
     band: BandDiagramResult;
     metrics: DeviceMetrics;
+    operatingPoint: OperatingPoint;
     depletionWidth: number;
     gm: SweepCurve;
     gds: SweepCurve;
@@ -868,11 +870,20 @@ export class CompactEngine {
     const metrics = this.extractMetrics(deviceType, params, T, { linear, log });
     const depletionWidth = this.depletionWidth(params.substrate.doping, T, bias.vbs);
 
+    // Calculate current at operating point
+    const id = this.drainCurrent(deviceType, params, bias, T);
+    const operatingPoint: OperatingPoint = {
+      vgs: bias.vgs,
+      vds: bias.vds,
+      vbs: bias.vbs,
+      id,
+    };
+
     const isNMOS = deviceType === 'nmos';
     const Vdd = isNMOS ? 1.0 : -1.0;
     const gm = this.sweepGm(deviceType, params, T, Vdd);
     const gds = this.sweepGds(deviceType, params, T, Vdd);
 
-    return { iv, cv, band, metrics, depletionWidth, gm, gds, effects: this.getEffects() };
+    return { iv, cv, band, metrics, operatingPoint, depletionWidth, gm, gds, effects: this.getEffects() };
   }
 }

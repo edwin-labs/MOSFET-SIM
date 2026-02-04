@@ -3,7 +3,7 @@ import { useSimulationStore, useViewStore, useDeviceStore, useComparisonStore } 
 import styles from './Plots.module.css';
 
 export function IVPlot() {
-  const { iv } = useSimulationStore();
+  const { iv, operatingPoint } = useSimulationStore();
   const { theme } = useViewStore();
   const { deviceType } = useDeviceStore();
   const { snapshots, compareMode, selectedIds } = useComparisonStore();
@@ -26,9 +26,17 @@ export function IVPlot() {
     paper_bgcolor: isDark ? '#1a1a2e' : '#ffffff',
     plot_bgcolor: isDark ? '#1a1a2e' : '#ffffff',
     font: { color: isDark ? '#e0e0e0' : '#1f2937', size: 10 },
-    margin: { t: 30, r: 10, b: 40, l: 50 },
+    margin: { t: 10, r: 10, b: 50, l: 50 },
     showlegend: true,
-    legend: { x: 1, xanchor: 'right', y: 1, font: { size: 9 } },
+    legend: {
+      orientation: 'h' as const,
+      x: 0.5,
+      xanchor: 'center' as const,
+      y: -0.25,
+      yanchor: 'top' as const,
+      font: { size: 8 },
+      bgcolor: isDark ? 'rgba(26,26,46,0.8)' : 'rgba(255,255,255,0.8)',
+    },
     xaxis: {
       gridcolor: isDark ? '#2a2a4a' : '#e5e7eb',
       zerolinecolor: isDark ? '#3a3a5a' : '#d1d5db',
@@ -40,7 +48,8 @@ export function IVPlot() {
   };
 
   // Output characteristics (Id vs Vds)
-  const outputTraces = iv.output.map((curve, i) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const outputTraces: any[] = iv.output.map((curve, i) => ({
     x: curve.x,
     y: curve.y.map((v) => Math.abs(v) * 1e6), // Convert to uA
     type: 'scatter' as const,
@@ -49,8 +58,22 @@ export function IVPlot() {
     line: { color: colors[i % colors.length], width: 1.5 },
   }));
 
+  // Add operating point marker on output plot
+  if (operatingPoint) {
+    outputTraces.push({
+      x: [operatingPoint.vds],
+      y: [Math.abs(operatingPoint.id) * 1e6],
+      type: 'scatter' as const,
+      mode: 'markers' as const,
+      name: 'Bias',
+      marker: { color: '#ff4444', size: 10, symbol: 'circle' },
+      showlegend: true,
+    });
+  }
+
   // Transfer characteristics (Id vs Vgs, log scale)
-  const transferLogTraces = iv.transferLog.map((curve, i) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transferLogTraces: any[] = iv.transferLog.map((curve, i) => ({
     x: curve.x,
     y: curve.y,
     type: 'scatter' as const,
@@ -58,6 +81,20 @@ export function IVPlot() {
     name: curve.label,
     line: { color: colors[i % colors.length], width: 1.5 },
   }));
+
+  // Add operating point marker on transfer plot
+  if (operatingPoint) {
+    const absId = Math.abs(operatingPoint.id);
+    transferLogTraces.push({
+      x: [operatingPoint.vgs],
+      y: [absId > 1e-18 ? absId : 1e-18],
+      type: 'scatter' as const,
+      mode: 'markers' as const,
+      name: 'Bias',
+      marker: { color: '#ff4444', size: 10, symbol: 'circle' },
+      showlegend: true,
+    });
+  }
 
   // Add comparison traces if compare mode is enabled
   if (compareMode && selectedIds.length > 0) {
@@ -77,7 +114,7 @@ export function IVPlot() {
           name: `${snapshot.name}`,
           line: { color: snapshot.color, width: 2 },
           opacity: 0.7,
-        } as typeof transferLogTraces[0]);
+        });
       }
     }
   }

@@ -34,6 +34,7 @@
     "@types/react-dom": "^18.3.5",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@webgpu/types": "^0.1.69",
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",

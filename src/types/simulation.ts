@@ -63,6 +63,13 @@ export interface NumericalResult2D {
   Jp?: Float64Array;   // A/cm^2 - hole current density
 }
 
+export interface OperatingPoint {
+  vgs: number;  // V
+  vds: number;  // V
+  vbs: number;  // V
+  id: number;   // A - drain current at this bias
+}
+
 export interface DeviceMetrics {
   Vth: number;           // V - threshold voltage
   SS: number;            // mV/dec - subthreshold swing
@@ -90,6 +97,7 @@ export interface SimulationState {
   dopingLateral1d: DopingProfile1D | null;
   numerical2d: NumericalResult2D | null;
   metrics: DeviceMetrics | null;
+  operatingPoint: OperatingPoint | null;  // current bias point
   gm: SweepCurve | null;   // gm vs Vgs
   gds: SweepCurve | null;  // gds vs Vds
   error: string | null;

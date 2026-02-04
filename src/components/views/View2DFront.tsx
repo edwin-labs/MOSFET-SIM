@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useDeviceStore, useSimulationStore, useViewStore } from '../../store';
-import { dopingToColor, drawColorbar } from '../../utils/colormap';
+import { dopingToColor, netTypeToColor, potentialToColor, efieldToColor, drawColorbar } from '../../utils/colormap';
 import styles from './View2D.module.css';
 
 export function View2DFront() {
@@ -8,7 +8,7 @@ export function View2DFront() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { deviceType, deviceParams } = useDeviceStore();
-  const { depletionWidth, doping2d } = useSimulationStore();
+  const { depletionWidth, doping2d, numerical2d } = useSimulationStore();
   const { colormap, theme } = useViewStore();
 
   const isDark = theme === 'dark';
@@ -122,8 +122,8 @@ export function View2DFront() {
     ctx.fillText('Gate', toX(0), toY(tox + gateHeight + 10));
     ctx.fillText('Drain', toX(L / 2 + lddLen + sdLen / 2), toY(-xj - 10));
 
-    // Draw doping heatmap overlay if colormap is 'doping'
-    if (colormap === 'doping' && doping2d) {
+    // Draw colormap overlay based on selected view
+    if ((colormap === 'doping' || colormap === 'netType') && doping2d) {
       const xArr = doping2d.x;
       const zArr = doping2d.z;
       const xMin = xArr[0];
@@ -138,32 +138,33 @@ export function View2DFront() {
 
       for (let py = 0; py < imgHeight; py++) {
         for (let px = 0; px < imgWidth; px++) {
-          // Convert pixel to nm coordinates
           const xNm = xMin + (px / scale);
-          const zNm = zMin + (py / scale); // depth from surface
+          const zNm = zMin + (py / scale);
 
-          // Find nearest doping2d grid point
           const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (doping2d.nx - 1));
           const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (doping2d.nz - 1));
 
           if (xi >= 0 && xi < doping2d.nx && zi >= 0 && zi < doping2d.nz) {
             const idx = zi * doping2d.nx + xi;
-            const NdVal = doping2d.Nd[idx];
-            const NaVal = doping2d.Na[idx];
-            const [r, g, b] = dopingToColor(NdVal, NaVal);
+            let r: number, g: number, b: number;
+
+            if (colormap === 'doping') {
+              [r, g, b] = dopingToColor(doping2d.Nd[idx], doping2d.Na[idx]);
+            } else {
+              [r, g, b] = netTypeToColor(doping2d.Nnet[idx]);
+            }
 
             const pidx = (py * imgWidth + px) * 4;
             data[pidx] = r;
             data[pidx + 1] = g;
             data[pidx + 2] = b;
-            data[pidx + 3] = 180; // Semi-transparent
+            data[pidx + 3] = 180;
           }
         }
       }
 
       ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
 
-      // Draw colorbar
       drawColorbar(
         ctx,
         width - 30,
@@ -172,9 +173,112 @@ export function View2DFront() {
         80,
         'p-type',
         'n-type',
-        'Doping',
+        colormap === 'doping' ? 'Doping' : 'Net Type',
         true
       );
+    }
+
+    // Potential colormap (requires numerical data)
+    if (colormap === 'potential' && numerical2d) {
+      const { x: xArr, z: zArr, psi, nx, nz } = numerical2d;
+      const xMin = xArr[0];
+      const xMax = xArr[xArr.length - 1];
+      const zMin = zArr[0];
+      const zMax = zArr[zArr.length - 1];
+
+      // Find min/max potential
+      let minPsi = Infinity, maxPsi = -Infinity;
+      for (let i = 0; i < psi.length; i++) {
+        if (psi[i] < minPsi) minPsi = psi[i];
+        if (psi[i] > maxPsi) maxPsi = psi[i];
+      }
+
+      const imgWidth = Math.ceil((xMax - xMin) * scale);
+      const imgHeight = Math.ceil((zMax - zMin) * scale);
+      const imgData = ctx.createImageData(imgWidth, imgHeight);
+      const data = imgData.data;
+
+      for (let py = 0; py < imgHeight; py++) {
+        for (let px = 0; px < imgWidth; px++) {
+          const xNm = xMin + (px / scale);
+          const zNm = zMin + (py / scale);
+
+          const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (nx - 1));
+          const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (nz - 1));
+
+          if (xi >= 0 && xi < nx && zi >= 0 && zi < nz) {
+            const idx = zi * nx + xi;
+            const [r, g, b] = potentialToColor(psi[idx], minPsi, maxPsi);
+
+            const pidx = (py * imgWidth + px) * 4;
+            data[pidx] = r;
+            data[pidx + 1] = g;
+            data[pidx + 2] = b;
+            data[pidx + 3] = 180;
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
+      drawColorbar(ctx, width - 30, 40, 12, 80, `${minPsi.toFixed(1)}V`, `${maxPsi.toFixed(1)}V`, 'Potential', false);
+    }
+
+    // E-Field colormap (requires numerical data)
+    if (colormap === 'efield' && numerical2d) {
+      const { x: xArr, z: zArr, Ex, Ez, nx, nz } = numerical2d;
+      const xMin = xArr[0];
+      const xMax = xArr[xArr.length - 1];
+      const zMin = zArr[0];
+      const zMax = zArr[zArr.length - 1];
+
+      // Find max field magnitude
+      let maxE = 0;
+      for (let i = 0; i < Ex.length; i++) {
+        const E = Math.sqrt(Ex[i] * Ex[i] + Ez[i] * Ez[i]);
+        if (E > maxE) maxE = E;
+      }
+
+      const imgWidth = Math.ceil((xMax - xMin) * scale);
+      const imgHeight = Math.ceil((zMax - zMin) * scale);
+      const imgData = ctx.createImageData(imgWidth, imgHeight);
+      const data = imgData.data;
+
+      for (let py = 0; py < imgHeight; py++) {
+        for (let px = 0; px < imgWidth; px++) {
+          const xNm = xMin + (px / scale);
+          const zNm = zMin + (py / scale);
+
+          const xi = Math.floor((xNm - xMin) / (xMax - xMin) * (nx - 1));
+          const zi = Math.floor((zNm - zMin) / (zMax - zMin) * (nz - 1));
+
+          if (xi >= 0 && xi < nx && zi >= 0 && zi < nz) {
+            const idx = zi * nx + xi;
+            const E = Math.sqrt(Ex[idx] * Ex[idx] + Ez[idx] * Ez[idx]);
+            const [r, g, b] = efieldToColor(E, maxE);
+
+            const pidx = (py * imgWidth + px) * 4;
+            data[pidx] = r;
+            data[pidx + 1] = g;
+            data[pidx + 2] = b;
+            data[pidx + 3] = 180;
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, Math.round(toX(xMin)), Math.round(toY(0)));
+      drawColorbar(ctx, width - 30, 40, 12, 80, '0', `${(maxE / 1e5).toFixed(1)}MV/cm`, 'E-Field', false);
+    }
+
+    // Show message if potential/efield selected but no numerical data
+    if ((colormap === 'potential' || colormap === 'efield') && !numerical2d) {
+      ctx.fillStyle = isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)';
+      ctx.fillRect(width / 2 - 100, height / 2 - 20, 200, 40);
+      ctx.fillStyle = isDark ? '#e0e0e0' : '#1f2937';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Requires Level C (Numerical)', width / 2, height / 2);
+      ctx.font = '10px sans-serif';
+      ctx.fillText('Run numerical simulation first', width / 2, height / 2 + 14);
     }
 
     // Draw scale bar
@@ -194,7 +298,7 @@ export function View2DFront() {
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Front View (X-Z)', 10, 16);
-  }, [deviceType, deviceParams, depletionWidth, colormap, doping2d, isDark]);
+  }, [deviceType, deviceParams, depletionWidth, colormap, doping2d, numerical2d, isDark]);
 
   useEffect(() => {
     draw();

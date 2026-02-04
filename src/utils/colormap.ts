@@ -97,6 +97,65 @@ export function dopingToColor(
 }
 
 /**
+ * Net doping type to color (simplified: n-type red, p-type blue)
+ */
+export function netTypeToColor(Nnet: number): [number, number, number] {
+  if (Math.abs(Nnet) < 1e14) {
+    // Near intrinsic - gray
+    return [128, 128, 128];
+  }
+  if (Nnet > 0) {
+    // n-type - Red
+    return [220, 80, 80];
+  } else {
+    // p-type - Blue
+    return [80, 80, 220];
+  }
+}
+
+/**
+ * Potential to color (blue negative -> white zero -> red positive)
+ */
+export function potentialToColor(
+  psi: number,
+  minPsi: number,
+  maxPsi: number
+): [number, number, number] {
+  const range = maxPsi - minPsi;
+  if (range === 0) return [128, 128, 128];
+
+  // Normalize to 0-1
+  const t = (psi - minPsi) / range;
+
+  // Blue -> White -> Red
+  if (t < 0.5) {
+    const s = t * 2;
+    return [Math.round(s * 255), Math.round(s * 255), 255];
+  } else {
+    const s = (t - 0.5) * 2;
+    return [255, Math.round((1 - s) * 255), Math.round((1 - s) * 255)];
+  }
+}
+
+/**
+ * Electric field magnitude to color (viridis-like)
+ */
+export function efieldToColor(
+  E: number,
+  maxE: number
+): [number, number, number] {
+  if (maxE === 0) return [68, 1, 84]; // Dark purple
+
+  const t = Math.min(E / maxE, 1);
+
+  // Viridis-like colormap
+  const r = Math.round(68 + t * (253 - 68));
+  const g = Math.round(1 + t * (231 - 1));
+  const b = Math.round(84 + t * (37 - 84));
+  return [r, g, b];
+}
+
+/**
  * Draw a colorbar legend on canvas
  */
 export function drawColorbar(
