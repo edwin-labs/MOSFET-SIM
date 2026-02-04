@@ -2,26 +2,50 @@
  * Custom styles for MOSFET Simulator documentation
  */
 
-/* Center-align MathJax equations */
-mjx-container {
-  display: block !important;
-  text-align: center;
-  margin: 1em 0;
-  overflow-x: auto;
-}
-
-/* Inline math should remain inline */
-mjx-container[jax="CHTML"][display="false"],
-mjx-container[display="false"] {
-  display: inline !important;
-  text-align: inherit;
-  margin: 0;
-}
-
-/* Math block styling */
-.math-display,
-.MathJax_Display {
+/* Display math equations - block level */
+mjx-container[jax="CHTML"][display="true"],
+mjx-container[display="true"] {
   display: block;
   text-align: center;
-  margin: 1em 0;
+  margin: 1.5em 0;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Subtle background for display equations */
+mjx-container[display="true"] {
+  background: var(--vp-c-bg-soft);
+  border-radius: 8px;
+  border-left: 3px solid var(--vp-c-brand-1);
+}
+
+/* Inline math - keep natural flow */
+mjx-container[jax="CHTML"][display="false"],
+mjx-container[display="false"],
+mjx-container:not([display]) {
+  display: inline;
+  margin: 0 0.1em;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Scrollbar styling for overflow equations */
+mjx-container[display="true"]::-webkit-scrollbar {
+  height: 4px;
+}
+
+mjx-container[display="true"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+mjx-container[display="true"]::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 2px;
+}
+
+/* Dark mode adjustments */
+.dark mjx-container[display="true"] {
+  background: var(--vp-c-bg-soft);
 }
