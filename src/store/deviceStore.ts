@@ -36,6 +36,11 @@ interface DeviceStore {
     key: keyof DeviceParams[K],
     value: DeviceParams[K][keyof DeviceParams[K]]
   ) => void;
+  updateProcessParam: <K extends keyof ProcessParams>(
+    group: K,
+    key: keyof ProcessParams[K],
+    value: ProcessParams[K][keyof ProcessParams[K]]
+  ) => void;
   updateBias: (key: keyof BiasConditions, value: number) => void;
   updateAdvancedPhysics: (key: keyof AdvancedPhysicsOptions, value: boolean) => void;
   resetAll: () => void;
@@ -296,6 +301,17 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
         ...state.deviceParams,
         [group]: {
           ...state.deviceParams[group],
+          [key]: value,
+        },
+      },
+    })),
+
+  updateProcessParam: (group, key, value) =>
+    set((state) => ({
+      processParams: {
+        ...state.processParams,
+        [group]: {
+          ...state.processParams[group],
           [key]: value,
         },
       },

@@ -1,9 +1,18 @@
 import { useDeviceStore } from '../../store';
 import { ParamSlider } from './ParamSlider';
 import { ParamSection } from './ParamSection';
+import type { ProcessParams as ProcessParamsType } from '../../types/device';
 
 export function ProcessParams() {
-  const { processParams } = useDeviceStore();
+  const { processParams, updateProcessParam } = useDeviceStore();
+
+  const update = <K extends keyof ProcessParamsType>(
+    group: K,
+    key: keyof ProcessParamsType[K],
+    value: number
+  ) => {
+    updateProcessParam(group, key, value as ProcessParamsType[K][keyof ProcessParamsType[K]]);
+  };
 
   return (
     <>
@@ -19,7 +28,7 @@ export function ProcessParams() {
           step={0.1}
           unit="nm"
           tooltip="Gate oxide thickness"
-          onChange={() => {}}
+          onChange={(v) => update('gateStack', 'oxideThickness', v)}
         />
         <ParamSlider
           label="L_g"
@@ -29,7 +38,7 @@ export function ProcessParams() {
           step={1}
           unit="nm"
           tooltip="Gate length"
-          onChange={() => {}}
+          onChange={(v) => update('gateStack', 'gateLength', v)}
         />
       </ParamSection>
 
@@ -42,7 +51,7 @@ export function ProcessParams() {
           unit="cm⁻³"
           tooltip="Well doping concentration"
           logScale={true}
-          onChange={() => {}}
+          onChange={(v) => update('well', 'doping', v)}
         />
         <ParamSlider
           label="d_{well}"
@@ -52,7 +61,7 @@ export function ProcessParams() {
           step={10}
           unit="nm"
           tooltip="Well depth"
-          onChange={() => {}}
+          onChange={(v) => update('well', 'depth', v)}
         />
       </ParamSection>
 
@@ -68,7 +77,7 @@ export function ProcessParams() {
           unit="cm⁻²"
           tooltip="Implant dose"
           logScale={true}
-          onChange={() => {}}
+          onChange={(v) => update('vtAdjust', 'dose', v)}
         />
         <ParamSlider
           label="E"
@@ -78,7 +87,7 @@ export function ProcessParams() {
           step={1}
           unit="keV"
           tooltip="Implant energy"
-          onChange={() => {}}
+          onChange={(v) => update('vtAdjust', 'energy', v)}
         />
       </ParamSection>
 
@@ -95,7 +104,7 @@ export function ProcessParams() {
               max={1e15}
               unit="cm⁻²"
               logScale={true}
-              onChange={() => {}}
+              onChange={(v) => update('halo', 'dose', v)}
             />
             <ParamSlider
               label="\\theta"
@@ -104,7 +113,7 @@ export function ProcessParams() {
               max={60}
               step={1}
               unit="°"
-              onChange={() => {}}
+              onChange={(v) => update('halo', 'tiltAngle', v)}
             />
           </>
         )}
@@ -121,7 +130,7 @@ export function ProcessParams() {
           max={1e16}
           unit="cm⁻²"
           logScale={true}
-          onChange={() => {}}
+          onChange={(v) => update('sdMain', 'dose', v)}
         />
         <ParamSlider
           label="E_{SD}"
@@ -130,7 +139,17 @@ export function ProcessParams() {
           max={100}
           step={1}
           unit="keV"
-          onChange={() => {}}
+          onChange={(v) => update('sdMain', 'energy', v)}
+        />
+        <ParamSlider
+          label="x_j"
+          value={processParams.sdMain.depth}
+          min={10}
+          max={200}
+          step={1}
+          unit="nm"
+          tooltip="Junction depth"
+          onChange={(v) => update('sdMain', 'depth', v)}
         />
       </ParamSection>
 
@@ -145,7 +164,16 @@ export function ProcessParams() {
           max={1e15}
           unit="cm⁻²"
           logScale={true}
-          onChange={() => {}}
+          onChange={(v) => update('ldd', 'dose', v)}
+        />
+        <ParamSlider
+          label="E_{LDD}"
+          value={processParams.ldd.energy}
+          min={5}
+          max={50}
+          step={1}
+          unit="keV"
+          onChange={(v) => update('ldd', 'energy', v)}
         />
       </ParamSection>
 
@@ -157,10 +185,20 @@ export function ProcessParams() {
           max={50}
           step={1}
           unit="nm"
-          onChange={() => {}}
+          onChange={(v) => update('spacer', 'width', v)}
+        />
+        <ParamSlider
+          label="T_{anneal}"
+          value={processParams.anneal.temperature}
+          min={800}
+          max={1100}
+          step={10}
+          unit="°C"
+          tooltip="Anneal temperature"
+          onChange={(v) => update('anneal', 'temperature', v)}
         />
         <div style={{ padding: '8px 0', fontSize: '11px', color: 'var(--text-secondary)' }}>
-          Anneal: {processParams.anneal.type} @ {processParams.anneal.temperature}°C
+          Anneal: {processParams.anneal.type}
         </div>
       </ParamSection>
 
